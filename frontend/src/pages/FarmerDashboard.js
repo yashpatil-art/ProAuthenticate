@@ -41,49 +41,40 @@ const FarmerDashboard = () => {
   }, [navigate]);
 
   const fetchProducts = async () => {
-    try {
-      const response = await api.get('/products/my-products');
-      if (response.data.success) {
-        const productsData = response.data.data;
-        setProducts(productsData);
-        
-        // Calculate stats
-        const totalProducts = productsData.length;
-        const verifiedProducts = productsData.filter(p => p.verificationStatus === 'approved').length;
-        const pendingVerification = productsData.filter(p => p.verificationStatus === 'pending').length;
-        
-        setStats({
-          totalProducts,
-          verifiedProducts,
-          pendingVerification,
-          totalSales: 125000 // Mock data for now
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    }
-  };
-
-  const handleAddProduct = async (productData) => {
-    try {
-      const formData = new FormData();
+  try {
+    console.log('Fetching products...');
+    const token = localStorage.getItem('authToken');
+    console.log('Current token:', token ? token.substring(0, 20) + '...' : 'No token');
+    
+    const response = await api.get('/products/my-products');
+    console.log('Products response:', response.data);
+    
+    if (response.data.success) {
+      const productsData = response.data.data;
+      setProducts(productsData);
       
-      // Append product data
-      Object.keys(productData).forEach(key => {
-        if (key === 'qualityParameters') {
-          formData.append(key, JSON.stringify(productData[key]));
-        } else if (key === 'images') {
-          // Append each image file
-          productData.images.forEach(image => {
-            formData.append('images', image);
-          });
-        } else if (key === 'harvestDate') {
-          formData.append(key, new Date(productData[key]).toISOString());
-        } else {
-          formData.append(key, productData[key]);
-        }
+      // Calculate stats
+      const totalProducts = productsData.length;
+      const verifiedProducts = productsData.filter(p => p.verificationStatus === 'approved').length;
+      const pendingVerification = productsData.filter(p => p.verificationStatus === 'pending').length;
+      
+      setStats({
+        totalProducts,
+        verifiedProducts,
+        pendingVerification,
+        totalSales: 125000 // Mock data for now
       });
+    }
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    console.error('Error details:', error.response?.data);
+    alert('Failed to fetch products. Please check console for details.');
+  }
+};
 
+  // CORRECT handleAddProduct function - ONLY ONE VERSION
+  const handleAddProduct = async (formData) => {
+    try {
       const response = await api.post('/products', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -378,7 +369,7 @@ const ProductsTab = ({ products, onAddProduct, onRefresh }) => (
       <h3 className="text-xl font-semibold text-gray-800">My Products</h3>
       <button
         onClick={onAddProduct}
-        className="btn-primary flex items-center space-x-2"
+        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md flex items-center space-x-2 transition"
       >
         <span>+</span>
         <span>Add Product</span>
@@ -394,7 +385,7 @@ const ProductsTab = ({ products, onAddProduct, onRefresh }) => (
         <p className="text-gray-600 mb-4">Start by adding your first product for verification.</p>
         <button
           onClick={onAddProduct}
-          className="btn-primary"
+          className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md transition"
         >
           Add Your First Product
         </button>
@@ -574,7 +565,9 @@ const ProfileTab = ({ user }) => (
     </div>
     
     <div className="mt-6 flex space-x-4">
-      <button className="btn-primary">Edit Profile</button>
+      <button className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md transition">
+        Edit Profile
+      </button>
       <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-gray-700 transition">
         Change Password
       </button>

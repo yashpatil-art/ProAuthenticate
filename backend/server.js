@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 // Load env variables
 dotenv.config();
@@ -19,22 +20,26 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads/products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Created uploads directory');
+}
+
+// CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Your React app URL
-  credentials: true
+  origin: 'http://localhost:3000', // React dev server
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Middleware
 app.use(express.json());
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Create uploads directory if it doesn't exist
-import fs from 'fs';
-const uploadsDir = path.join(__dirname, 'uploads/products');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -49,7 +54,7 @@ const connectDB = async () => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes); // This should be AFTER app is defined
+app.use('/api/products', productRoutes);
 
 // Existing routes
 app.get('/api/health', (req, res) => {

@@ -13,12 +13,14 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    console.log('Decoded token:', decoded);
+    
     const user = await User.findById(decoded.userId);
     
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token - user not found'
       });
     }
 
@@ -28,8 +30,10 @@ const auth = async (req, res, next) => {
       email: user.email
     };
     
+    console.log('Authenticated user:', req.user);
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     res.status(401).json({
       success: false,
       message: 'Invalid token'

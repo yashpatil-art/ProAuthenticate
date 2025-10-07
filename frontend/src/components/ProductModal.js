@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
-  const [formData, setFormData] = useState({
+  const [formDataState, setFormDataState] = useState({
     name: '',
     description: '',
     category: '',
@@ -30,7 +30,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormDataState(prev => ({
       ...prev,
       [name]: value
     }));
@@ -38,7 +38,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
 
   const handleQualityParamChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormDataState(prev => ({
       ...prev,
       qualityParameters: {
         ...prev.qualityParameters,
@@ -49,34 +49,56 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setFormData(prev => ({
+    setFormDataState(prev => ({
       ...prev,
       images: [...prev.images, ...files]
     }));
   };
 
   const removeImage = (index) => {
-    setFormData(prev => ({
+    setFormDataState(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
   };
 
+  // In the handleSubmit function, update the formData preparation:
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      
+      // Append all basic fields
+      formData.append('name', formDataState.name);
+      formData.append('description', formDataState.description);
+      formData.append('category', formDataState.category);
+      formData.append('price', formDataState.price);
+      formData.append('quantity', formDataState.quantity);
+      formData.append('unit', formDataState.unit);
+      formData.append('farmLocation', formDataState.farmLocation);
+      formData.append('harvestDate', formDataState.harvestDate);
+      
+      // Append quality parameters as JSON string
+      formData.append('qualityParameters', JSON.stringify(formDataState.qualityParameters));
+      
+      // Append images
+      formDataState.images.forEach(image => {
+        formData.append('images', image);
+      });
+
       await onSubmit(formData);
     } catch (error) {
       console.error('Error submitting product:', error);
+      alert('Failed to add product. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const getQualityFields = () => {
-    switch (formData.category) {
+    switch (formDataState.category) {
       case 'sugar':
         return (
           <div>
@@ -84,7 +106,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             <input
               type="text"
               name="purity"
-              value={formData.qualityParameters.purity}
+              value={formDataState.qualityParameters.purity}
               onChange={handleQualityParamChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               placeholder="e.g., 99.9% pure"
@@ -97,7 +119,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Grade</label>
             <select
               name="grade"
-              value={formData.qualityParameters.grade}
+              value={formDataState.qualityParameters.grade}
               onChange={handleQualityParamChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
             >
@@ -116,7 +138,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             <input
               type="text"
               name="curcuminContent"
-              value={formData.qualityParameters.curcuminContent}
+              value={formDataState.qualityParameters.curcuminContent}
               onChange={handleQualityParamChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               placeholder="e.g., 3.5% curcumin"
@@ -129,7 +151,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Ripeness Stage</label>
             <select
               name="ripenessStage"
-              value={formData.qualityParameters.ripenessStage}
+              value={formDataState.qualityParameters.ripenessStage}
               onChange={handleQualityParamChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
             >
@@ -172,7 +194,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <input
                   type="text"
                   name="name"
-                  value={formData.name}
+                  value={formDataState.name}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
@@ -184,7 +206,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                 <select
                   name="category"
-                  value={formData.category}
+                  value={formDataState.category}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
@@ -203,7 +225,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
               <textarea
                 name="description"
-                value={formData.description}
+                value={formDataState.description}
                 onChange={handleChange}
                 required
                 rows="3"
@@ -222,7 +244,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <input
                   type="number"
                   name="price"
-                  value={formData.price}
+                  value={formDataState.price}
                   onChange={handleChange}
                   required
                   min="0"
@@ -237,7 +259,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <input
                   type="number"
                   name="quantity"
-                  value={formData.quantity}
+                  value={formDataState.quantity}
                   onChange={handleChange}
                   required
                   min="0"
@@ -251,7 +273,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
                 <select
                   name="unit"
-                  value={formData.unit}
+                  value={formDataState.unit}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 >
@@ -273,7 +295,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <input
                   type="text"
                   name="farmLocation"
-                  value={formData.farmLocation}
+                  value={formDataState.farmLocation}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
@@ -286,7 +308,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                 <input
                   type="date"
                   name="harvestDate"
-                  value={formData.harvestDate}
+                  value={formDataState.harvestDate}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
@@ -296,7 +318,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
           </div>
 
           {/* Quality Parameters */}
-          {formData.category && (
+          {formDataState.category && (
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quality Parameters</h3>
               {getQualityFields()}
@@ -328,11 +350,11 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             </div>
 
             {/* Preview Images */}
-            {formData.images.length > 0 && (
+            {formDataState.images.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm text-gray-600 mb-2">Selected images ({formData.images.length}/5):</p>
+                <p className="text-sm text-gray-600 mb-2">Selected images ({formDataState.images.length}/5):</p>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  {formData.images.map((image, index) => (
+                  {formDataState.images.map((image, index) => (
                     <div key={index} className="relative">
                       <img
                         src={URL.createObjectURL(image)}
@@ -368,7 +390,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
               className={`flex-1 py-3 rounded-lg font-semibold transition ${
                 loading
                   ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'btn-primary text-white'
+                  : 'bg-primary hover:bg-primary-dark text-white'
               }`}
             >
               {loading ? 'Adding Product...' : 'Add Product for Verification'}
