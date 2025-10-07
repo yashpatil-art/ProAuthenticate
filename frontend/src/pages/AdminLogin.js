@@ -25,25 +25,26 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      // For demo purposes - in real app, you'd have proper admin authentication
-      if (formData.email === 'admin@proauthenticate.com' && formData.password === 'admin123') {
-        const adminUser = {
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@proauthenticate.com',
-          role: 'admin'
-        };
-        
-        localStorage.setItem('authToken', 'demo-admin-token');
-        localStorage.setItem('user', JSON.stringify(adminUser));
+      const response = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password
+      });
+
+      console.log('Login response:', response.data);
+
+      if (response.data.success && response.data.data.user.role === 'admin') {
+        localStorage.setItem('authToken', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
         localStorage.setItem('userType', 'admin');
         
+        alert('Admin login successful!');
         navigate('/admin');
       } else {
-        setError('Invalid admin credentials');
+        setError('Access denied. Admin privileges required.');
       }
     } catch (error) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', error);
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +117,7 @@ const AdminLogin = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
               >
                 {loading ? 'Signing in...' : 'Sign in as Admin'}
               </button>

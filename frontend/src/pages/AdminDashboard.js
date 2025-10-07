@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-// Remove this import: import ProductsTab from '../components/ProductsTab.js';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -21,13 +20,24 @@ const AdminDashboard = () => {
     const fetchAdminData = async () => {
       try {
         const userData = localStorage.getItem('user');
-        if (!userData) {
+        const token = localStorage.getItem('authToken');
+        
+        console.log('Checking admin access...', { 
+          hasUserData: !!userData, 
+          hasToken: !!token 
+        });
+
+        if (!userData || !token) {
+          console.log('No user data or token, redirecting to admin login');
           navigate('/admin-login');
           return;
         }
 
         const parsedUser = JSON.parse(userData);
+        console.log('User role:', parsedUser.role);
+
         if (parsedUser.role !== 'admin') {
+          console.log('User is not admin, redirecting to home');
           navigate('/');
           return;
         }
@@ -37,6 +47,10 @@ const AdminDashboard = () => {
         
       } catch (error) {
         console.error('Error fetching admin data:', error);
+        // Clear invalid tokens and redirect
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userType');
         navigate('/admin-login');
       } finally {
         setLoading(false);
@@ -50,10 +64,20 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('authToken');
       
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('Fetching admin data with token...');
+
       // Fetch stats
       const statsResponse = await api.get('/admin/stats', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
       const statsData = statsResponse.data.data;
       setStats({
         totalFarmers: statsData.farmers.total,
@@ -74,9 +98,21 @@ const AdminDashboard = () => {
       });
       setAllProducts(productsResponse.data.data);
 
+      console.log('Admin data fetched successfully');
+
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Failed to fetch admin data');
+      console.error('Error fetching admin data:', error);
+      
+      // If unauthorized, clear storage and redirect
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userType');
+        alert('Session expired or access denied. Please login again.');
+        navigate('/admin-login');
+      } else {
+        alert('Failed to fetch admin data. Please try again.');
+      }
     }
   };
 
@@ -104,7 +140,7 @@ const AdminDashboard = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     localStorage.removeItem('userType');
-    navigate('/');
+    navigate('/admin-login');
   };
 
   if (loading) {
