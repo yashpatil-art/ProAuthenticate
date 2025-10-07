@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+// Remove this import: import ProductsTab from '../components/ProductsTab.js';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
-  const [pendingFarmers, setPendingFarmers] = useState([]);
-  const [verifiedFarmers, setVerifiedFarmers] = useState([]);
+  const [pendingProducts, setPendingProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [stats, setStats] = useState({
     totalFarmers: 0,
@@ -48,141 +48,55 @@ const AdminDashboard = () => {
 
   const fetchAllData = async () => {
     try {
-      // Mock data - replace with actual API calls
-      const mockPendingFarmers = [
-        {
-          id: 1,
-          name: 'Rajesh Kumar',
-          email: 'rajesh@example.com',
-          farmName: 'Green Valley Farms',
-          location: 'Nashik, Maharashtra',
-          phone: '+91 9876543210',
-          products: ['Grapes', 'Pomegranate'],
-          registrationDate: '2024-01-15',
-          documents: ['aadhar.pdf', 'land_record.pdf']
-        },
-        {
-          id: 2,
-          name: 'Priya Sharma',
-          email: 'priya@example.com',
-          farmName: 'Organic Harvest',
-          location: 'Nagpur, Maharashtra',
-          phone: '+91 9876543211',
-          products: ['Orange', 'Cotton'],
-          registrationDate: '2024-01-16',
-          documents: ['aadhar.pdf', 'farming_certificate.pdf']
-        }
-      ];
-
-      const mockVerifiedFarmers = [
-        {
-          id: 3,
-          name: 'Amit Patel',
-          email: 'amit@example.com',
-          farmName: 'Patel Farms',
-          location: 'Pune, Maharashtra',
-          phone: '+91 9876543212',
-          products: ['Sugar', 'Turmeric'],
-          registrationDate: '2024-01-10',
-          verificationDate: '2024-01-12',
-          status: 'verified'
-        }
-      ];
-
-      const mockProducts = [
-        {
-          id: 1,
-          name: 'Organic Turmeric',
-          farmer: 'Amit Patel',
-          category: 'Turmeric',
-          quantity: '100 kg',
-          status: 'verified',
-          verificationDate: '2024-01-15'
-        },
-        {
-          id: 2,
-          name: 'Premium Grapes',
-          farmer: 'Rajesh Kumar',
-          category: 'Grapes',
-          quantity: '200 kg',
-          status: 'pending',
-          verificationDate: null
-        }
-      ];
-
-      setPendingFarmers(mockPendingFarmers);
-      setVerifiedFarmers(mockVerifiedFarmers);
-      setAllProducts(mockProducts);
-
-      setStats({
-        totalFarmers: mockPendingFarmers.length + mockVerifiedFarmers.length,
-        pendingVerifications: mockPendingFarmers.length,
-        verifiedFarmers: mockVerifiedFarmers.length,
-        totalProducts: mockProducts.length
+      const token = localStorage.getItem('authToken');
+      
+      // Fetch stats
+      const statsResponse = await api.get('/admin/stats', {
+        headers: { Authorization: `Bearer ${token}` }
       });
+      const statsData = statsResponse.data.data;
+      setStats({
+        totalFarmers: statsData.farmers.total,
+        pendingVerifications: statsData.products.pending,
+        verifiedFarmers: statsData.farmers.verified,
+        totalProducts: statsData.products.total
+      });
+
+      // Fetch pending products
+      const pendingResponse = await api.get('/admin/pending-products', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPendingProducts(pendingResponse.data.data);
+
+      // Fetch all products
+      const productsResponse = await api.get('/admin/all-products', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllProducts(productsResponse.data.data);
 
     } catch (error) {
       console.error('Error fetching data:', error);
+      alert('Failed to fetch admin data');
     }
   };
 
-  const handleApproveFarmer = async (farmerId) => {
+  const handleVerifyProduct = async (productId, status) => {
     try {
-      // Replace with actual API call
-      console.log('Approving farmer:', farmerId);
+      const token = localStorage.getItem('authToken');
       
-      const farmer = pendingFarmers.find(f => f.id === farmerId);
-      if (farmer) {
-        setVerifiedFarmers(prev => [...prev, { ...farmer, status: 'verified', verificationDate: new Date().toISOString().split('T')[0] }]);
-        setPendingFarmers(prev => prev.filter(f => f.id !== farmerId));
-        
-        setStats(prev => ({
-          ...prev,
-          pendingVerifications: prev.pendingVerifications - 1,
-          verifiedFarmers: prev.verifiedFarmers + 1
-        }));
-
-        alert(`Farmer ${farmer.name} has been verified successfully!`);
-      }
-    } catch (error) {
-      console.error('Error approving farmer:', error);
-      alert('Error approving farmer. Please try again.');
-    }
-  };
-
-  const handleRejectFarmer = async (farmerId) => {
-    const farmer = pendingFarmers.find(f => f.id === farmerId);
-    if (confirm(`Are you sure you want to reject ${farmer?.name}'s application?`)) {
-      try {
-        // Replace with actual API call
-        setPendingFarmers(prev => prev.filter(f => f.id !== farmerId));
-        setStats(prev => ({
-          ...prev,
-          pendingVerifications: prev.pendingVerifications - 1,
-          totalFarmers: prev.totalFarmers - 1
-        }));
-        
-        alert(`Farmer ${farmer?.name} has been rejected.`);
-      } catch (error) {
-        console.error('Error rejecting farmer:', error);
-      }
-    }
-  };
-
-  const handleVerifyProduct = async (productId) => {
-    try {
-      // Replace with actual API call
-      setAllProducts(prev => 
-        prev.map(product => 
-          product.id === productId 
-            ? { ...product, status: 'verified', verificationDate: new Date().toISOString().split('T')[0] }
-            : product
-        )
+      const response = await api.patch(
+        `/admin/products/${productId}/verify`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      alert('Product verified successfully!');
+
+      if (response.data.success) {
+        await fetchAllData();
+        alert(`Product ${status} successfully!`);
+      }
     } catch (error) {
       console.error('Error verifying product:', error);
+      alert('Error verifying product. Please try again.');
     }
   };
 
@@ -256,7 +170,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-2xl p-6 shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Pending Verifications</p>
+                <p className="text-gray-600 text-sm">Pending Products</p>
                 <p className="text-3xl font-bold text-yellow-600">{stats.pendingVerifications}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -295,8 +209,7 @@ const AdminDashboard = () => {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               {[
-                { id: 'pending', name: 'Pending Verifications', icon: '⏳', count: pendingFarmers.length },
-                { id: 'verified', name: 'Verified Farmers', icon: '✓', count: verifiedFarmers.length },
+                { id: 'pending', name: 'Pending Products', icon: '⏳', count: pendingProducts.length },
                 { id: 'products', name: 'All Products', icon: '📦', count: allProducts.length },
                 { id: 'analytics', name: 'Analytics', icon: '📊' }
               ].map((tab) => (
@@ -328,15 +241,13 @@ const AdminDashboard = () => {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'pending' && (
-              <PendingVerificationsTab 
-                farmers={pendingFarmers}
-                onApprove={handleApproveFarmer}
-                onReject={handleRejectFarmer}
+              <PendingProductsTab 
+                products={pendingProducts}
+                onVerifyProduct={handleVerifyProduct}
               />
             )}
-            {activeTab === 'verified' && <VerifiedFarmersTab farmers={verifiedFarmers} />}
             {activeTab === 'products' && (
-              <ProductsTab 
+              <AllProductsTab 
                 products={allProducts}
                 onVerifyProduct={handleVerifyProduct}
               />
@@ -349,62 +260,89 @@ const AdminDashboard = () => {
   );
 };
 
-// Tab Components
-const PendingVerificationsTab = ({ farmers, onApprove, onReject }) => (
+// Tab Components - Keep these local components
+const PendingProductsTab = ({ products, onVerifyProduct }) => (
   <div>
-    <h3 className="text-xl font-semibold text-gray-800 mb-6">Pending Farmer Verifications</h3>
+    <h3 className="text-xl font-semibold text-gray-800 mb-6">Pending Product Verifications</h3>
     
-    {farmers.length === 0 ? (
+    {products.length === 0 ? (
       <div className="text-center py-12">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-green-600 text-2xl">✓</span>
         </div>
         <h4 className="text-lg font-semibold text-gray-800 mb-2">All Caught Up!</h4>
-        <p className="text-gray-600">No pending farmer verifications at the moment.</p>
+        <p className="text-gray-600">No pending product verifications at the moment.</p>
       </div>
     ) : (
       <div className="space-y-6">
-        {farmers.map((farmer) => (
-          <div key={farmer.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        {products.map((product) => (
+          <div key={product._id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h4 className="text-lg font-semibold text-gray-800">{farmer.name}</h4>
-                <p className="text-gray-600">{farmer.email} • {farmer.phone}</p>
+                <h4 className="text-lg font-semibold text-gray-800">{product.name}</h4>
+                <p className="text-gray-600">Verification ID: {product.verificationId}</p>
                 <div className="flex items-center space-x-4 mt-2">
                   <div className="bg-white px-3 py-1 rounded-full text-sm border">
-                    <span className="font-medium">{farmer.farmName}</span>
+                    <span className="font-medium capitalize">{product.category}</span>
                   </div>
                   <div className="bg-white px-3 py-1 rounded-full text-sm border">
-                    <span>{farmer.location}</span>
+                    <span>{product.quantity} {product.unit}</span>
+                  </div>
+                  <div className="bg-white px-3 py-1 rounded-full text-sm border">
+                    <span>₹{product.price}/kg</span>
                   </div>
                 </div>
               </div>
               <div className="text-sm text-gray-500">
-                Registered: {farmer.registrationDate}
+                Created: {new Date(product.createdAt).toLocaleDateString()}
               </div>
             </div>
 
             <div className="mb-4">
               <p className="text-sm text-gray-700 mb-2">
-                <strong>Products:</strong> {farmer.products.join(', ')}
+                <strong>Description:</strong> {product.description}
+              </p>
+              <p className="text-sm text-gray-700 mb-2">
+                <strong>Farm Location:</strong> {product.farmLocation}
               </p>
               <p className="text-sm text-gray-700">
-                <strong>Documents:</strong> {farmer.documents.join(', ')}
+                <strong>Harvest Date:</strong> {new Date(product.harvestDate).toLocaleDateString()}
               </p>
+              {product.farmer && (
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Farmer:</strong> {product.farmer.name} ({product.farmer.farmName}) - {product.farmer.location}
+                </p>
+              )}
             </div>
+
+            {product.images && product.images.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Product Images:</p>
+                <div className="flex space-x-2">
+                  {product.images.map((image, index) => (
+                    <img 
+                      key={index}
+                      src={image} 
+                      alt={`Product ${index + 1}`}
+                      className="w-20 h-20 object-cover rounded border"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex space-x-4">
               <button
-                onClick={() => onApprove(farmer.id)}
+                onClick={() => onVerifyProduct(product._id, 'approved')}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition"
               >
-                Approve & Verify
+                Approve Product
               </button>
               <button
-                onClick={() => onReject(farmer.id)}
+                onClick={() => onVerifyProduct(product._id, 'rejected')}
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition"
               >
-                Reject
+                Reject Product
               </button>
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold transition">
                 View Details
@@ -417,109 +355,86 @@ const PendingVerificationsTab = ({ farmers, onApprove, onReject }) => (
   </div>
 );
 
-const VerifiedFarmersTab = ({ farmers }) => (
-  <div>
-    <h3 className="text-xl font-semibold text-gray-800 mb-6">Verified Farmers</h3>
-    
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farm Details</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Verification Date</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {farmers.map((farmer) => (
-            <tr key={farmer.id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="font-medium text-gray-900">{farmer.name}</div>
-                  <div className="text-sm text-gray-500">{farmer.email}</div>
-                  <div className="text-sm text-gray-500">{farmer.phone}</div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{farmer.farmName}</div>
-                <div className="text-sm text-gray-500">{farmer.location}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{farmer.products.join(', ')}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {farmer.verificationDate}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                  Verified
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
-
-const ProductsTab = ({ products, onVerifyProduct }) => (
+const AllProductsTab = ({ products, onVerifyProduct }) => (
   <div>
     <h3 className="text-xl font-semibold text-gray-800 mb-6">All Products</h3>
     
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="font-medium text-gray-900">{product.name}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {product.farmer}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.category}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.quantity}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                  product.status === 'verified' 
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {product.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                {product.status !== 'verified' && (
-                  <button
-                    onClick={() => onVerifyProduct(product.id)}
-                    className="text-primary hover:text-primary-dark"
-                  >
-                    Verify Product
-                  </button>
-                )}
-              </td>
+    {products.length === 0 ? (
+      <div className="text-center py-12">
+        <p className="text-gray-600">No products found.</p>
+      </div>
+    ) : (
+      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+        <table className="min-w-full divide-y divide-gray-300">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {products.map((product) => (
+              <tr key={product._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="font-medium text-gray-900">{product.name}</div>
+                  <div className="text-sm text-gray-500">{product.verificationId}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{product.farmer?.name}</div>
+                  <div className="text-sm text-gray-500">{product.farmer?.farmName}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                  {product.category}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.quantity} {product.unit}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  ₹{product.price}/{product.unit}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    product.verificationStatus === 'approved' 
+                      ? 'bg-green-100 text-green-800'
+                      : product.verificationStatus === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {product.verificationStatus}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                  {product.verificationStatus === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => onVerifyProduct(product._id, 'approved')}
+                        className="text-green-600 hover:text-green-900 mr-3"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => onVerifyProduct(product._id, 'rejected')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  <button className="text-blue-600 hover:text-blue-900 ml-3">
+                    View
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
   </div>
 );
 
@@ -535,7 +450,7 @@ const AnalyticsTab = ({ stats }) => (
             <span className="font-medium">{stats.totalFarmers}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Pending Verifications:</span>
+            <span className="text-gray-600">Pending Products:</span>
             <span className="font-medium text-yellow-600">{stats.pendingVerifications}</span>
           </div>
           <div className="flex justify-between">
@@ -555,24 +470,24 @@ const AnalyticsTab = ({ stats }) => (
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span>Verified Farmers</span>
-              <span>{Math.round((stats.verifiedFarmers / stats.totalFarmers) * 100)}%</span>
+              <span>{stats.totalFarmers > 0 ? Math.round((stats.verifiedFarmers / stats.totalFarmers) * 100) : 0}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-green-600 h-2 rounded-full" 
-                style={{ width: `${(stats.verifiedFarmers / stats.totalFarmers) * 100}%` }}
+                style={{ width: `${stats.totalFarmers > 0 ? (stats.verifiedFarmers / stats.totalFarmers) * 100 : 0}%` }}
               ></div>
             </div>
           </div>
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span>Pending Verifications</span>
-              <span>{Math.round((stats.pendingVerifications / stats.totalFarmers) * 100)}%</span>
+              <span>Pending Products</span>
+              <span>{stats.totalProducts > 0 ? Math.round((stats.pendingVerifications / stats.totalProducts) * 100) : 0}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-yellow-600 h-2 rounded-full" 
-                style={{ width: `${(stats.pendingVerifications / stats.totalFarmers) * 100}%` }}
+                style={{ width: `${stats.totalProducts > 0 ? (stats.pendingVerifications / stats.totalProducts) * 100 : 0}%` }}
               ></div>
             </div>
           </div>

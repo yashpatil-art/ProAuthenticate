@@ -6,12 +6,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
+
 // Load env variables
 dotenv.config();
 
 // Import Routes
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
+import adminRoutes from './routes/admin.js';
 
 // Initialize Express app
 const app = express();
@@ -55,6 +57,7 @@ const connectDB = async () => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Existing routes
 app.get('/api/health', (req, res) => {

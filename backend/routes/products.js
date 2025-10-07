@@ -4,7 +4,6 @@ import auth from '../middleware/auth.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs'; // Regular import, not dynamic
 
 const router = express.Router();
 
@@ -12,38 +11,44 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create uploads directory if it doesn't exist (do this once at startup)
-const uploadsDir = path.join(__dirname, '../uploads/products/');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('Created uploads directory:', uploadsDir);
-}
-
-// Configure multer for file uploads - SIMPLIFIED VERSION
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+    cb(null, path.join(__dirname, '../uploads/products/'));
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = 'product-' + uniqueSuffix + path.extname(file.originalname);
-    cb(null, filename);
+    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// SIMPLIFIED multer configuration
 const upload = multer({ 
-  storage: storage
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// ✅ TEST ROUTE - Check if routes are working
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Products route is working!'
+  });
 });
 
 // ✅ Create a new product (with image upload)
 router.post('/', auth, upload.array('images', 5), async (req, res) => {
   try {
     console.log('=== PRODUCT CREATION STARTED ===');
-    console.log('Request files:', req.files);
-    console.log('Request body:', req.body);
-    console.log('Authenticated user:', req.user);
-
+    
     const {
       name,
       description,
@@ -56,47 +61,33 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
       qualityParameters
     } = req.body;
 
-    // Validate required fields
+    // Basic validation
     if (!name || !description || !category || !price || !quantity || !farmLocation || !harvestDate) {
       return res.status(400).json({
         success: false,
-        message: 'All required fields must be provided'
+        message: 'Missing required fields'
       });
     }
 
     // Get image URLs from uploaded files
     const images = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
 
-    // Create product object
-    const productData = {
-      name: name.trim(),
-      description: description.trim(),
-      category: category.trim(),
+    // Create product
+    const product = new Product({
+      name,
+      description,
+      category,
       price: parseFloat(price),
       quantity: parseFloat(quantity),
-      unit: (unit || 'kg').trim(),
+      unit: unit || 'kg',
       images,
       farmer: req.user.userId,
-      farmLocation: farmLocation.trim(),
+      farmLocation,
       harvestDate: new Date(harvestDate),
+      qualityParameters: qualityParameters ? JSON.parse(qualityParameters) : {},
       verificationStatus: 'pending'
-    };
+    });
 
-    // Add quality parameters if provided
-    if (qualityParameters && qualityParameters !== '{}') {
-      try {
-        productData.qualityParameters = typeof qualityParameters === 'string' 
-          ? JSON.parse(qualityParameters) 
-          : qualityParameters;
-      } catch (parseError) {
-        console.warn('Failed to parse qualityParameters:', parseError);
-        productData.qualityParameters = {};
-      }
-    } else {
-      productData.qualityParameters = {};
-    }
-
-    const product = new Product(productData);
     await product.save();
 
     // Populate farmer details
@@ -108,11 +99,8 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
       message: 'Product created successfully and submitted for verification!',
       data: product
     });
-
   } catch (error) {
-    console.error('=== PRODUCT CREATION ERROR ===');
-    console.error('Error details:', error);
-    
+    console.error('Product creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create product',
@@ -124,15 +112,19 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
 // ✅ Get all products for a farmer
 router.get('/my-products', auth, async (req, res) => {
   try {
+    console.log('Fetching products for user:', req.user.userId);
+    
     const products = await Product.find({ farmer: req.user.userId })
       .populate('farmer', 'name farmName location')
       .sort({ createdAt: -1 });
 
+    console.log('Found products:', products.length);
     res.json({
       success: true,
       data: products
     });
   } catch (error) {
+    console.error('Error fetching products:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products',
@@ -163,6 +155,33 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products',
+      error: error.message
+    });
+  }
+});
+
+// ✅ Get single product
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate('farmer', 'name farmName location phone')
+      .populate('verifiedBy', 'name');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: product
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product',
       error: error.message
     });
   }
