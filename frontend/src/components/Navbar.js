@@ -17,10 +17,10 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">P</span>
+                <span className="text-white font-bold text-xl">E</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">ProAuthenticate</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Elitess Global</h1>
                 <p className="text-xs text-gray-500 -mt-1">Blockchain Verified</p>
               </div>
             </Link>

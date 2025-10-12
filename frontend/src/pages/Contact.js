@@ -36,25 +36,25 @@ const Contact = () => {
     {
       icon: '📧',
       title: 'Email Us',
-      details: 'info@proauthenticate.com',
+      details: 'info@elitesglobal.com',
       description: 'Send us an email anytime'
     },
     {
       icon: '📞',
       title: 'Call Us',
-      details: '+91 98765 43210',
+      details: '+919604127449',
       description: 'Mon to Fri, 9AM to 6PM'
     },
     {
       icon: '🏢',
       title: 'Visit Us',
-      details: 'Agricultural Tech Park, Mumbai',
+      details: 'Plot No 28, Arun Sarnaik Nagar, Nana Patil Chawk,Behind Shahu Highschool, Kolhapur, 416011',
       description: 'Come say hello at our office'
     },
     {
       icon: '💬',
       title: 'WhatsApp',
-      details: '+91 98765 43210',
+      details: '+919604127449',
       description: 'Quick responses via WhatsApp'
     }
   ];
@@ -239,9 +239,9 @@ const Contact = () => {
           <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl h-64 flex items-center justify-center">
             <div className="text-center">
               <div className="text-4xl mb-4">🗺️</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Agricultural Tech Park</h3>
-              <p className="text-gray-600">Mumbai, Maharashtra, India</p>
-              <p className="text-gray-500 text-sm mt-2">Interactive map coming soon</p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Plot No 28, Arun Sarnaik Nagar</h3>
+              <p className="text-gray-600">Nana Patil Chawk,Behind Shahu Highschool</p>
+              <p className="text-gray-500 text-sm mt-2">Kolhapur, 416011</p>
             </div>
           </div>
         </div>

@@ -1,83 +1,40 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { products, productCategories } from '../data/productsData';
 
 const Products = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const products = [
-    {
-      id: 1,
-      name: 'Organic Cane Sugar',
-      category: 'sugar',
-      price: '₹45/kg',
-      verified: true,
-      farmer: 'Green Fields Farm',
-      location: 'Maharashtra',
-      description: 'Pure organic sugarcane with 99.8% purity, blockchain verified from harvest to packaging.',
-      features: ['99.8% Purity', 'Organic Certified', 'No Chemicals', 'Blockchain Tracked'],
-      image: '/images/sugar.jpg',
-      harvestDate: '2024-01-15',
-      verificationId: 'PA-SUG-2024-001'
-    },
-    {
-      id: 2,
-      name: 'W240 Premium Cashews',
-      category: 'cashew',
-      price: '₹120/kg',
-      verified: true,
-      farmer: 'Cashew Valley Estates',
-      location: 'Kerala',
-      description: 'Grade W240 raw cashews, 180-200 nuts per pound. Direct from coastal farms.',
-      features: ['W240 Grade', 'Raw & Natural', 'Export Quality', 'Size Verified'],
-      image: '/images/cashew.jpg',
-      harvestDate: '2024-01-10',
-      verificationId: 'PA-CAS-2024-002'
-    },
-    {
-      id: 3,
-      name: 'High Curcumin Turmeric',
-      category: 'turmeric',
-      price: '₹85/kg',
-      verified: true,
-      farmer: 'Golden Spice Farms',
-      location: 'Tamil Nadu',
-      description: 'Organic turmeric with 5.2% curcumin content. Lab tested for purity and potency.',
-      features: ['5.2% Curcumin', 'Lab Verified', 'No Adulteration', 'Medical Grade'],
-      image: '/images/turmeric.jpg',
-      harvestDate: '2024-01-08',
-      verificationId: 'PA-TUR-2024-003'
-    },
-    {
-      id: 4,
-      name: 'Organic Cavendish Bananas',
-      category: 'banana',
-      price: '₹25/dozen',
-      verified: true,
-      farmer: 'Tropical Harvest',
-      location: 'Karnataka',
-      description: 'Fresh organic Cavendish bananas, harvested at perfect ripeness stage 5.',
-      features: ['Organic', 'Stage 5 Ripeness', 'Cold Chain', 'Fresh Harvest'],
-      image: '/images/banana.jpg',
-      harvestDate: '2024-01-20',
-      verificationId: 'PA-BAN-2024-004'
-    }
-  ];
-
-  const categories = [
-    { id: 'all', name: 'All Products', count: products.length },
-    { id: 'sugar', name: 'Sugar Products', count: products.filter(p => p.category === 'sugar').length },
-    { id: 'cashew', name: 'Cashew Nuts', count: products.filter(p => p.category === 'cashew').length },
-    { id: 'turmeric', name: 'Turmeric', count: products.filter(p => p.category === 'turmeric').length },
-    { id: 'banana', name: 'Bananas', count: products.filter(p => p.category === 'banana').length }
-  ];
-
+  // Filter products based on category and search term
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || 
+      (selectedCategory === 'Fruits' && ['grapes', 'mango', 'pomegranate'].includes(product.slug)) ||
+      (selectedCategory === 'Spices' && product.slug === 'turmeric') ||
+      (selectedCategory === 'Grains' && product.slug === 'rice') ||
+      (selectedCategory === 'Sweeteners' && product.slug === 'sugar') ||
+      (selectedCategory === 'Nuts' && product.slug === 'cashew') ||
+      (selectedCategory === 'Commercial Crops' && product.slug === 'tobacco');
+    
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.shortDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.varieties.some(variety => variety.toLowerCase().includes(searchTerm.toLowerCase()));
+
     return matchesCategory && matchesSearch;
   });
+
+  // Get category counts
+  const getCategoryCount = (category) => {
+    if (category === 'All') return products.length;
+    if (category === 'Fruits') return products.filter(p => ['grapes', 'mango', 'pomegranate'].includes(p.slug)).length;
+    if (category === 'Spices') return products.filter(p => p.slug === 'turmeric').length;
+    if (category === 'Grains') return products.filter(p => p.slug === 'rice').length;
+    if (category === 'Sweeteners') return products.filter(p => p.slug === 'sugar').length;
+    if (category === 'Nuts') return products.filter(p => p.slug === 'cashew').length;
+    if (category === 'Commercial Crops') return products.filter(p => p.slug === 'tobacco').length;
+    return 0;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 fade-in">
@@ -86,10 +43,10 @@ const Products = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Verified Products
+            Premium Agricultural Products
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Browse our collection of blockchain-verified agricultural products. Every item comes with complete transparency.
+            Discover our collection of blockchain-verified agricultural products from Western Maharashtra. Every product comes with complete traceability.
           </p>
         </div>
 
@@ -102,30 +59,38 @@ const Products = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Search products by name, description, or varieties..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-12 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-3 pl-12 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                 />
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                   🔍
                 </div>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Category Filter */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map(category => (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {productCategories.map(category => (
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === category.id
-                      ? 'bg-primary text-white shadow-md'
+                    selectedCategory === category
+                      ? 'bg-green-600 text-white shadow-md transform scale-105'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {category.name} ({category.count})
+                  {category} ({getCategoryCount(category)})
                 </button>
               ))}
             </div>
@@ -136,78 +101,107 @@ const Products = () => {
         {filteredProducts.length > 0 ? (
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map(product => (
-                <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden card-hover border border-gray-200">
+              {filteredProducts.map((product, index) => (
+                <div 
+                  key={product.id} 
+                  className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 card-hover border border-gray-200"
+                >
                   
                   {/* Product Image */}
-                  <div className="h-48 bg-gray-200 overflow-hidden relative">
+                  <div className="h-48 overflow-hidden relative">
                     <img 
                       src={product.image} 
                       alt={product.name}
-                      className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
                     />
-                    {product.verified && (
-                      <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
-                        <span>✓</span>
-                        <span>Verified</span>
-                      </div>
-                    )}
+                    <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 shadow-lg">
+                      <span>🔗</span>
+                      <span>Blockchain Verified</span>
+                    </div>
+                    <div className="absolute top-4 left-4 bg-white/90 rounded-full w-10 h-10 flex items-center justify-center shadow-lg">
+                      <span className="text-lg">{product.icon}</span>
+                    </div>
                   </div>
 
                   {/* Product Info */}
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold text-gray-800">{product.name}</h3>
-                      <span className="text-2xl font-bold text-primary">{product.price}</span>
+                      <h3 className="text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                        {product.name}
+                      </h3>
                     </div>
 
-                    <div className="flex items-center text-sm text-gray-600 mb-3">
-                      <span className="mr-2">👨‍🌾</span>
-                      <span>{product.farmer}</span>
-                      <span className="mx-2">•</span>
-                      <span>{product.location}</span>
-                    </div>
-
-                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    <p className="text-green-600 font-medium text-sm mb-3 italic">
                       {product.description}
                     </p>
 
-                    {/* Features */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {product.features.map((feature, index) => (
-                          <span
-                            key={index}
-                            className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium"
-                          >
-                            {feature}
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
+                      {product.shortDescription}
+                    </p>
+
+                    {/* Varieties */}
+                    <div className="mb-3">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Varieties & Forms:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {product.varieties.slice(0, 3).map((variety, idx) => (
+                          <span key={idx} className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-700 border border-gray-200">
+                            {variety}
                           </span>
                         ))}
+                        {product.varieties.length > 3 && (
+                          <span className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-500 border border-gray-200">
+                            +{product.varieties.length - 3} more
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Verification Info */}
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <div>
-                          <span className="font-medium">Harvest:</span> {product.harvestDate}
-                        </div>
-                        <div>
-                          <span className="font-medium">ID:</span> {product.verificationId}
-                        </div>
+                    {/* Global Appeal */}
+                    <div className="mb-3">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-1">Global Appeal:</h4>
+                      <p className="text-gray-600 text-xs leading-relaxed">
+                        {product.globalAppeal}
+                      </p>
+                    </div>
+
+                    {/* Value Additions */}
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">Value Addition:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {product.valueAdditions.slice(0, 2).map((addition, idx) => (
+                          <span key={idx} className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs border border-amber-200">
+                            {addition}
+                          </span>
+                        ))}
+                        {product.valueAdditions.length > 2 && (
+                          <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs border border-amber-200">
+                            +{product.valueAdditions.length - 2} more
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex space-x-3 mt-6">
-                      <button className="flex-1 bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition text-center">
-                        Verify Authenticity
-                      </button>
-                      <button className="flex-1 border border-primary text-primary py-3 px-4 rounded-lg font-semibold hover:bg-primary hover:text-white transition text-center">
-                        Contact Farmer
+                      <Link 
+                        to={`/products/${product.slug}`}
+                        className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition text-center flex items-center justify-center group/view"
+                      >
+                        <span className="transform group-hover/view:translate-x-1 transition-transform duration-300">
+                          View Details
+                        </span>
+                        <span className="ml-1 transform group-hover/view:translate-x-1 transition-transform duration-300 delay-100">
+                          →
+                        </span>
+                      </Link>
+                      <button className="flex-1 border border-green-600 text-green-600 py-3 px-4 rounded-lg font-semibold hover:bg-green-600 hover:text-white transition text-center">
+                        Contact Supplier
                       </button>
                     </div>
                   </div>
+
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                 </div>
               ))}
             </div>
@@ -215,41 +209,48 @@ const Products = () => {
             {/* Bottom CTA - Only shows when products are displayed */}
             <div className="text-center mt-12 bg-white rounded-lg shadow-md p-8">
               <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                Can't find what you're looking for?
+                Looking for Bulk Quantities or Custom Requirements?
               </h3>
-              <p className="text-gray-600 mb-6">
-                Contact us directly and we'll help you source verified agricultural products.
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                We specialize in connecting buyers with premium agricultural products from Western Maharashtra. 
+                Get in touch for bulk orders, custom processing, or exclusive varieties.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/contact" className="btn-primary">
+                <Link 
+                  to="/contact" 
+                  className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition transform hover:scale-105"
+                >
                   Contact Our Team
                 </Link>
-                <Link to="/farmer-login" className="btn-secondary">
-                  Become a Verified Farmer
+                <Link 
+                  to="/farmer-login" 
+                  className="border border-green-600 text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-600 hover:text-white transition transform hover:scale-105"
+                >
+                  Become a Verified Supplier
                 </Link>
               </div>
             </div>
           </>
         ) : (
           /* No Products Found - Only shows when no products match search/filter */
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4 text-gray-300">🔍</div>
             <h3 className="text-2xl font-semibold text-gray-800 mb-2">No products found</h3>
-            <p className="text-gray-600 mb-6">
-              {searchTerm || selectedCategory !== 'all' 
-                ? "No products match your search criteria. Try different keywords or categories."
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              {searchTerm || selectedCategory !== 'All' 
+                ? "No products match your search criteria. Try different keywords or browse all categories."
                 : "No products are currently available in our catalog."
               }
             </p>
-            {(searchTerm || selectedCategory !== 'all') && (
+            {(searchTerm || selectedCategory !== 'All') && (
               <button
                 onClick={() => {
                   setSearchTerm('');
-                  setSelectedCategory('all');
+                  setSelectedCategory('All');
                 }}
-                className="btn-primary"
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
               >
-                Clear Filters
+                Clear Filters & Show All Products
               </button>
             )}
           </div>
