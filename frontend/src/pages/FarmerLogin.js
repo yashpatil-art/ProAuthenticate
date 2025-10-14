@@ -106,7 +106,7 @@ const FarmerLogin = () => {
         localStorage.setItem('user', JSON.stringify(response.data.data.user));
         localStorage.setItem('userType', 'farmer');
         
-        alert('Registration successful! Welcome to ProAuthenticate!');
+        alert('Registration successful! Welcome to Elites Global!');
         navigate('/farmer-dashboard');
       }
     } catch (error) {
@@ -154,7 +154,7 @@ const FarmerLogin = () => {
       <section className="bg-gradient-to-r from-primary to-green-700 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            {isLogin ? 'Welcome Back, Farmer!' : 'Join ProAuthenticate'}
+            {isLogin ? 'Welcome Back, Farmer!' : 'Join Elites Global'}
           </h1>
           <p className="text-xl">
             {isLogin 
@@ -171,7 +171,7 @@ const FarmerLogin = () => {
           {/* Benefits Section - Show only for registration */}
           {!isLogin && (
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8">Why Join ProAuthenticate?</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-8">Why Join Elites Global?</h2>
               <div className="space-y-6">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-4">
@@ -225,7 +225,7 @@ const FarmerLogin = () => {
                 </div>
 
                 <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 mb-2">New to ProAuthenticate?</h4>
+                  <h4 className="font-semibold text-blue-800 mb-2">New to Elites Global?</h4>
                   <p className="text-blue-700 text-sm">
                     Join our platform to get your products verified and reach premium markets. 
                     Registration takes less than 10 minutes.

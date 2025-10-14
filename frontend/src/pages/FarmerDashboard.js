@@ -125,7 +125,7 @@ const FarmerDashboard = () => {
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">P</span>
                 </div>
-                <span className="font-bold text-xl text-gray-800">ProAuthenticate</span>
+                <span className="font-bold text-xl text-gray-800">Elites Global</span>
               </div>
             </div>
             

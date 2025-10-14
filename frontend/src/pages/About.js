@@ -30,7 +30,7 @@ const About = () => {
   ];
 
   const milestones = [
-    { year: '2023', event: 'ProAuthenticate Founded', description: 'Started with vision to bring transparency to agriculture' },
+    { year: '2023', event: 'Elites Global Founded', description: 'Started with vision to bring transparency to agriculture' },
     { year: '2024 Q1', event: 'Blockchain Platform Launch', description: 'First version of authentication platform deployed' },
     { year: '2024 Q2', event: '100+ Farmers Onboarded', description: 'Reached milestone of verified farming partners' },
     { year: '2024 Q3', event: 'International Expansion', description: 'Started operations in multiple states across India' }

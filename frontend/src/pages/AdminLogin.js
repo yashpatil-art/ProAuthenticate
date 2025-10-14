@@ -89,7 +89,7 @@ const AdminLogin = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  placeholder="admin@proauthenticate.com"
+                  placeholder="admin@elitesglobal.com"
                 />
               </div>
             </div>
@@ -127,7 +127,7 @@ const AdminLogin = () => {
           <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <h4 className="font-semibold text-yellow-800 mb-2">Demo Credentials</h4>
             <p className="text-yellow-700 text-sm">
-              Email: admin@proauthenticate.com<br />
+              Email: admin@elitesglobal.com<br />
               Password: admin123
             </p>
           </div>
