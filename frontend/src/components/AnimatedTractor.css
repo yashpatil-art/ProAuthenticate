@@ -1,0 +1,30 @@
+.tractor-move-animation {
+  animation: moveTractor 25s linear infinite;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  will-change: transform;
+}
+
+@keyframes moveTractor {
+  0% {
+    transform: translateX(-100px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 100px));
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tractor-move-animation {
+    animation: moveTractor 20s linear infinite;
+  }
+  
+  @keyframes moveTractor {
+    0% {
+      transform: translateX(-50px);
+    }
+    100% {
+      transform: translateX(calc(100vw + 50px));
+    }
+  }
+}

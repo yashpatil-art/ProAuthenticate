@@ -21,7 +21,6 @@ const Navbar = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Elitess Global</h1>
-                <p className="text-xs text-gray-500 -mt-1">Blockchain Verified</p>
               </div>
             </Link>
           </div>
