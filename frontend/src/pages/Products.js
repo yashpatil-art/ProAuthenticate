@@ -46,7 +46,7 @@ const Products = () => {
             Premium Agricultural Products
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover our collection of blockchain-verified agricultural products from Western Maharashtra. Every product comes with complete traceability.
+            Discover our collection of agricultural products from Western Maharashtra. Every product comes with complete traceability.
           </p>
         </div>
 
@@ -114,10 +114,7 @@ const Products = () => {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
                     />
-                    <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 shadow-lg">
-                      <span>🔗</span>
-                      <span>Blockchain Verified</span>
-                    </div>
+                 
                     <div className="absolute top-4 left-4 bg-white/90 rounded-full w-10 h-10 flex items-center justify-center shadow-lg">
                       <span className="text-lg">{product.icon}</span>
                     </div>
