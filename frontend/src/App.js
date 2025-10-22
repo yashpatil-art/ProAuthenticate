@@ -15,6 +15,8 @@ import AdminLogin from './pages/AdminLogin';
 import Login from './components/login';
 import CustomerDashboard from './pages/CustomerDashboard'; // ← ADD THIS IMPORT
 import './styles/globals.css';
+import Sustainability from './pages/Sustainability';
+
 
 // React Router future flags to suppress warnings
 const routerConfig = {
@@ -36,6 +38,7 @@ function App() {
             <Route path="/products/:productSlug" element={<ProductDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/farmer-login" element={<FarmerLogin />} />
             <Route path="/customer-login" element={<CustomerLogin />} />
             <Route path="/customer-dashboard" element={<CustomerDashboard />} /> {/* ← ADD THIS ROUTE */}

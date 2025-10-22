@@ -474,13 +474,13 @@ const Home = () => {
         {/* Section Container with relative positioning for tractor */}
         <div className="relative">
           {/* Moving Tractor Animation - POSITIONED ABOVE TEXT */}
-          <div className="absolute -top-20 left-0 right-0 z-10 pointer-events-none overflow-hidden h-32">
+          <div className="absolute -top-20 left-0 right-0 z-10 pointer-events-none overflow-hidden h-40">
             <div className="tractor-move-animation">
               <Lottie 
                 animationData={tractorAnimation}
                 loop={true}
                 autoplay={true}
-                className="w-32 h-32"
+                className="w-40 h-40"
                 style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))' }}
               />
             </div>
