@@ -13,17 +13,31 @@ const Navbar = () => {
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">E</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">Elitess Global</h1>
-              </div>
-            </Link>
-          </div>
+         {/* Logo */}
+<div className="flex items-center">
+  <Link to="/" className="flex items-center space-x-3">
+    {/* Custom Logo Image - Increased size */}
+    <div className="w-16 h-16 flex items-center justify-center"> {/* Changed from w-12 h-12 to w-16 h-16 */}
+      <img 
+        src="/images/logo/elitess-logo.png" 
+        alt="Elitess Global" 
+        className="w-full h-full object-contain"
+        onError={(e) => {
+          // Fallback if image doesn't exist
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
+      />
+      {/* Fallback logo if image doesn't load - also increased */}
+      <div className="w-16 h-16 bg-gradient-to-br from-primary to-green-600 rounded-full hidden items-center justify-center shadow-md"> {/* Changed from w-12 h-12 to w-16 h-16 */}
+        <span className="text-white font-bold text-2xl">E</span> {/* Increased from text-xl to text-2xl */}
+      </div>
+    </div>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800">Elitess Global</h1>
+    </div>
+  </Link>
+</div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
@@ -61,7 +75,12 @@ const Navbar = () => {
             
             {/* Get Started Dropdown */}
             <div className="relative group">
-              
+              <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center">
+                Get Started
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
               
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                 <div className="p-2">

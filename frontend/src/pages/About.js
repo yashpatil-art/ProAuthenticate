@@ -116,92 +116,112 @@ const About = () => {
         </div>
       </section>
 
-      {/* Mission & Vision with Simple Animations */}
-      <section className="py-16 bg-gray-50">
+      {/* Mission & Vision - White Background with Green Boxes */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Mission Card */}
-            <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center text-white text-2xl mb-6 shadow-md transform group-hover:scale-110 transition duration-500">
-                🎯
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 transform group-hover:translate-x-2 transition duration-500">
-                Our Mission
-              </h3>
-              <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p className="text-lg text-justify transform group-hover:translate-x-1 transition duration-500 delay-100">
-                  To establish <span className="font-semibold text-green-700">Elite Global</span> as the world's most trusted and
-                  transformative export-import platform—where trade becomes a
-                  vehicle for prosperity, legacy, and institutional upliftment.
-                </p>
-                <p className="text-lg text-justify transform group-hover:translate-x-1 transition duration-500 delay-200">
-                  We envision a future where families, founders, and regions
-                  rise through seamless global commerce. Elite Global will be
-                  the bridge between Western Maharashtra's entrepreneurial
-                  spirit and the world's demand, enabling dignified growth,
-                  strategic alliances, and generational wealth.
-                </p>
-                <p className="text-lg font-medium text-green-700 text-justify transform group-hover:translate-x-1 transition duration-500 delay-300">
-                  Our platform shall embody precision, immunity, and elegance—making
-                  international trade not just accessible, but aspirational.
-                </p>
+            {/* Mission Card - Green Box */}
+            <div className="group bg-gradient-to-br from-green-600 via-emerald-600 to-green-700 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-700 hover:-translate-y-3 border-2 border-green-400 hover:border-green-300 relative overflow-hidden">
+              {/* Animated Background Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+              
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-white to-green-100 rounded-full flex items-center justify-center text-3xl mb-6 shadow-2xl transform group-hover:scale-110 group-hover:rotate-12 transition duration-700">
+                  <span className="bg-gradient-to-br from-green-600 to-emerald-700 bg-clip-text text-transparent">🎯</span>
+                </div>
+                
+                <h3 className="text-3xl font-bold text-white mb-8 transform group-hover:translate-x-4 transition duration-700 border-l-4 border-green-300 pl-4">
+                  Our Mission
+                </h3>
+                
+                <div className="space-y-6 text-green-100 leading-relaxed">
+                  <p className="text-lg text-justify transform group-hover:translate-x-2 transition duration-700 delay-100 group-hover:text-white">
+                    To establish <span className="font-bold text-white bg-green-500/30 px-2 py-1 rounded-lg backdrop-blur-sm">Elite Global</span> as the world's most trusted and
+                    transformative export-import platform—where trade becomes a
+                    vehicle for prosperity, legacy, and institutional upliftment.
+                  </p>
+                  
+                  <p className="text-lg text-justify transform group-hover:translate-x-2 transition duration-700 delay-200 group-hover:text-white">
+                    We envision a future where families, founders, and regions
+                    rise through seamless global commerce. Elite Global will be
+                    the bridge between Western Maharashtra's entrepreneurial
+                    spirit and the world's demand, enabling dignified growth,
+                    strategic alliances, and generational wealth.
+                  </p>
+                  
+                  <div className="bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-xl p-6 transform group-hover:translate-x-2 group-hover:scale-105 transition duration-700 delay-300">
+                    <p className="text-xl font-bold text-white text-justify italic">
+                      "Our platform shall embody precision, immunity, and elegance—making
+                      international trade not just accessible, but aspirational."
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            {/* Vision Card */}
-            <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center text-white text-2xl mb-6 shadow-md transform group-hover:scale-110 transition duration-500">
-                🔭
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 transform group-hover:translate-x-2 transition duration-500">
-                Our Vision
-              </h3>
-              <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p className="font-semibold text-gray-800 text-lg mb-4 transform group-hover:translate-x-1 transition duration-500">
-                  Elite Global is committed to:
-                </p>
+            {/* Vision Card - Green Box */}
+            <div className="group bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-700 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-700 hover:-translate-y-3 border-2 border-emerald-400 hover:border-emerald-300 relative overflow-hidden">
+              {/* Animated Background Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+              
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-white to-emerald-100 rounded-full flex items-center justify-center text-3xl mb-6 shadow-2xl transform group-hover:scale-110 group-hover:-rotate-12 transition duration-700">
+                  <span className="bg-gradient-to-br from-emerald-600 to-green-700 bg-clip-text text-transparent">🔭</span>
+                </div>
                 
-                <div className="space-y-4">
-                  {[
-                    {
-                      title: "Empowering Trade with Precision",
-                      description: "Delivering a platform that simplifies complex export-import processes with clarity, compliance, and institutional immunity—ensuring every transaction is secure, transparent, and future-proof."
-                    },
-                    {
-                      title: "Elevating Regional Identity",
-                      description: "Showcasing the excellence of Western Maharashtra's trade corridor—its agricultural, artisanal, and industrial strengths—on the global stage, with pride and strategic branding."
-                    },
-                    {
-                      title: "Building Prosperity Through Partnerships",
-                      description: "Cultivating enduring relationships with exporters, importers, governments, and institutions—where mutual growth is anchored in trust, timeliness, and shared vision."
-                    },
-                    {
-                      title: "Innovating for Ease and Elegance",
-                      description: "Integrating smart documentation, real-time tracking, and multilingual support to make global trade not just efficient, but graceful—honoring both tradition and technology."
-                    },
-                    {
-                      title: "Uplifting Legacy and Dynastic Ambition",
-                      description: "Creating a platform where founders and families can build lasting legacies—transforming trade into a source of fortune, dignity, and generational upliftment."
-                    }
-                  ].map((item, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-start transform group-hover:translate-x-1 transition duration-500"
-                      style={{ transitionDelay: `${(index + 1) * 100}ms` }}
-                    >
-                      <div className="bg-green-100 p-2 rounded-lg mr-4 flex-shrink-0 mt-1 transform group-hover:scale-110 transition duration-300">
-                        <span className="text-green-600 font-bold text-sm">•</span>
+                <h3 className="text-3xl font-bold text-white mb-8 transform group-hover:translate-x-4 transition duration-700 border-l-4 border-emerald-300 pl-4">
+                  Our Vision
+                </h3>
+                
+                <div className="space-y-6 text-green-100 leading-relaxed">
+                  <div className="bg-emerald-500/30 backdrop-blur-sm inline-block px-4 py-2 rounded-full transform group-hover:translate-x-2 transition duration-500">
+                    <p className="font-bold text-white text-lg">
+                      Elite Global is committed to:
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      {
+                        title: "Empowering Trade with Precision",
+                        description: "Delivering a platform that simplifies complex export-import processes with clarity, compliance, and institutional immunity—ensuring every transaction is secure, transparent, and future-proof."
+                      },
+                      {
+                        title: "Elevating Regional Identity",
+                        description: "Showcasing the excellence of Western Maharashtra's trade corridor—its agricultural, artisanal, and industrial strengths—on the global stage, with pride and strategic branding."
+                      },
+                      {
+                        title: "Building Prosperity Through Partnerships",
+                        description: "Cultivating enduring relationships with exporters, importers, governments, and institutions—where mutual growth is anchored in trust, timeliness, and shared vision."
+                      },
+                      {
+                        title: "Innovating for Ease and Elegance",
+                        description: "Integrating smart documentation, real-time tracking, and multilingual support to make global trade not just efficient, but graceful—honoring both tradition and technology."
+                      },
+                      {
+                        title: "Uplifting Legacy and Dynastic Ambition",
+                        description: "Creating a platform where founders and families can build lasting legacies—transforming trade into a source of fortune, dignity, and generational upliftment."
+                      }
+                    ].map((item, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-start transform group-hover:translate-x-2 transition duration-500 bg-green-500/20 backdrop-blur-sm rounded-xl p-4 border border-green-400/30 hover:border-green-300 hover:bg-green-500/30 group-hover:text-white"
+                        style={{ transitionDelay: `${(index + 1) * 100}ms` }}
+                      >
+                        <div className="bg-gradient-to-br from-white to-green-100 p-3 rounded-xl mr-4 flex-shrink-0 transform group-hover:scale-110 group-hover:rotate-6 transition duration-300 shadow-lg">
+                          <span className="text-green-700 font-black text-lg">{index + 1}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white mb-2 text-lg">
+                            {item.title}
+                          </h4>
+                          <p className="text-green-100 text-sm leading-relaxed text-justify group-hover:text-white">
+                            {item.description}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1">
-                          {item.title}
-                        </h4>
-                        <p className="text-gray-600 text-sm leading-relaxed text-justify">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -240,10 +260,10 @@ const About = () => {
             ].map((value, index) => (
               <div 
                 key={index} 
-                className="group text-center p-8 bg-gray-50 rounded-xl hover:bg-green-50 transition-all duration-500 hover:-translate-y-2"
+                className="group text-center p-8 bg-gradient-to-b from-green-50 to-white rounded-2xl hover:bg-gradient-to-b hover:from-green-100 hover:to-green-50 transition-all duration-500 hover:-translate-y-3 border-2 border-green-200 hover:border-green-400 shadow-lg hover:shadow-xl"
               >
-                <div className="text-5xl mb-4 transform group-hover:scale-110 transition duration-500">{value.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 transform group-hover:translate-y-1 transition duration-500">{value.title}</h3>
+                <div className="text-6xl mb-4 transform group-hover:scale-110 group-hover:rotate-6 transition duration-500">{value.icon}</div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4 transform group-hover:translate-y-2 transition duration-500">{value.title}</h3>
                 <p className="text-gray-600 leading-relaxed transform group-hover:translate-y-1 transition duration-500 delay-100">{value.description}</p>
               </div>
             ))}

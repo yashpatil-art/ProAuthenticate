@@ -9,37 +9,37 @@ const Home = () => {
 
   const sliderImages = [
     {
-      src: '/images/slider/slide1.png',
+      src: '/images/slider/slide1.jpg',
       alt: 'Western Maharashtra Agriculture',
       title: 'Harvesting Excellence,',
       subtitle: 'Sharing Abundance'
     },
     {
-      src: '/images/slider/slide2.png',
+      src: '/images/slider/slide2.jpg',
       alt: 'Grape Cultivation',
       title: 'Your Trusted Agri-Commodity',
       subtitle: 'Export Partner!'
     },
     {
-      src: '/images/slider/slide3.png',
+      src: '/images/slider/slide3.jpg',
       alt: 'Sugar Production',
       title: 'Harvesting Excellence,',
       subtitle: 'Sharing Abundance'
     },
     {
-      src: '/images/slider/slide4.png',
+      src: '/images/slider/slide4.jpg',
       alt: 'Turmeric Fields',
       title: 'Your Trusted Agri-Commodity',
       subtitle: 'Export Partner!'
     },
     {
-      src: '/images/slider/slide5.png',
+      src: '/images/slider/slide5.jpg',
       alt: 'Rice Cultivation',
       title: 'Harvesting Excellence,',
       subtitle: 'Sharing Abundance'
     },
     {
-      src: '/images/slider/slide6.png',
+      src: '/images/slider/slide6.jpg',
       alt: 'Cashew Processing',
       title: 'Your Trusted Agri-Commodity',
       subtitle: 'Export Partner!'
