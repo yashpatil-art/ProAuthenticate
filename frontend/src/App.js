@@ -16,6 +16,7 @@ import Login from './components/login';
 import CustomerDashboard from './pages/CustomerDashboard'; // ← ADD THIS IMPORT
 import './styles/globals.css';
 import Sustainability from './pages/Sustainability';
+import News from './pages/News';
 
 
 // React Router future flags to suppress warnings
@@ -46,6 +47,7 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
             <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/news" element={<News />} />
             {/* Add a catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />
           </Routes>
