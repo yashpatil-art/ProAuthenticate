@@ -61,7 +61,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health Check Routes
+// ✅ Health Check Routes
+app.get('/', (req, res) => {
+  res.send('✅ Server is running on Render!');
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -78,13 +82,14 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Start Server
+// ✅ Start Server
 const startServer = async () => {
   await connectDB(); // Ensure DB is ready before starting server
 
   const PORT = process.env.PORT || 5001;
 
-  app.listen(PORT, () => {
+  // ✅ Render needs 0.0.0.0 to accept external connections
+  app.listen(PORT, '0.0.0.0', () => {
     console.log('\n============================================================');
     console.log('🚀 PROAUTHENTICATE BACKEND SERVER STARTED SUCCESSFULLY!');
     console.log('============================================================');
