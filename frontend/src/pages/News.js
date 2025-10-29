@@ -9,7 +9,7 @@ const News = () => {
       excerpt: "We are proud to announce our new partnership with local farmers in Western Maharashtra to promote sustainable farming practices and blockchain-based supply chain transparency.",
       date: "December 15, 2024",
       category: "Partnership",
-      image: "/images/news/farmers-partnership.jpg",
+      image: "/images/news/partnership.jpg",
       readTime: "3 min read"
     },
     {
@@ -18,7 +18,7 @@ const News = () => {
       excerpt: "Discover how Elitess Global is leveraging blockchain to bring unprecedented transparency and trust to agricultural product tracking from farm to consumer.",
       date: "December 10, 2024",
       category: "Technology",
-      image: "/images/news/blockchain-agri.jpg",
+      image: "/images/news/technology.jpg",
       readTime: "4 min read"
     },
     {
@@ -27,7 +27,7 @@ const News = () => {
       excerpt: "Our premium agricultural products are now available in European markets, bringing the authentic taste of Western Maharashtra to international consumers.",
       date: "December 5, 2024",
       category: "Business",
-      image: "/images/news/europe-expansion.jpg",
+      image: "/images/news/bussiness.jpg",
       readTime: "2 min read"
     },
     {
@@ -36,7 +36,7 @@ const News = () => {
       excerpt: "Join our upcoming workshop on sustainable farming techniques and learn how to implement eco-friendly practices while increasing productivity.",
       date: "November 28, 2024",
       category: "Events",
-      image: "/images/news/workshop.jpg",
+      image: "/images/news/events.webp",
       readTime: "2 min read"
     },
     {
@@ -45,7 +45,7 @@ const News = () => {
       excerpt: "We are delighted to announce that Elitess Global has been awarded the ISO 9001:2015 certification for quality management systems.",
       date: "November 20, 2024",
       category: "Achievement",
-      image: "/images/news/iso-certification.jpg",
+      image: "/images/news/achievements.jpg",
       readTime: "3 min read"
     },
     {
@@ -54,7 +54,7 @@ const News = () => {
       excerpt: "Our new mobile application makes it easier for farmers to list products and for customers to track their orders with real-time updates.",
       date: "November 15, 2024",
       category: "Product Launch",
-      image: "/images/news/mobile-app.jpg",
+      image: "/images/news/product_launch.jpg",
       readTime: "3 min read"
     }
   ];

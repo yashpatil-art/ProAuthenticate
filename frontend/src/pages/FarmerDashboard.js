@@ -62,7 +62,7 @@ const FarmerDashboard = () => {
         totalProducts,
         verifiedProducts,
         pendingVerification,
-        totalSales: 125000 // Mock data for now
+        totalSales:0 // Mock data for now
       });
     }
   } catch (error) {
