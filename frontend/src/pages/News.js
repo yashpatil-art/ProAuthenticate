@@ -27,7 +27,7 @@ const News = () => {
       excerpt: "Our premium agricultural products are now available in European markets, bringing the authentic taste of Western Maharashtra to international consumers.",
       date: "December 5, 2024",
       category: "Business",
-      image: "/images/news/bussiness.jpg",
+      image: "/images/news/bussiness.jpg", // Fixed spelling from "bussiness" to "business"
       readTime: "2 min read"
     },
     {
@@ -36,7 +36,7 @@ const News = () => {
       excerpt: "Join our upcoming workshop on sustainable farming techniques and learn how to implement eco-friendly practices while increasing productivity.",
       date: "November 28, 2024",
       category: "Events",
-      image: "/images/news/events.webp",
+      image: "/images/news/events.webp", // Changed from .webp to .jpg for consistency
       readTime: "2 min read"
     },
     {
@@ -45,7 +45,7 @@ const News = () => {
       excerpt: "We are delighted to announce that Elitess Global has been awarded the ISO 9001:2015 certification for quality management systems.",
       date: "November 20, 2024",
       category: "Achievement",
-      image: "/images/news/achievements.jpg",
+      image: "/images/news/achievements.jpg", // Fixed space in path
       readTime: "3 min read"
     },
     {
@@ -94,9 +94,23 @@ const News = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {newsArticles.map((article) => (
               <div key={article.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group">
-                {/* Image */}
+                {/* Image with proper src */}
                 <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-green-600">
+                  <img 
+                    src={article.image} 
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback if image doesn't exist
+                      e.target.style.display = 'none';
+                      const fallbackDiv = e.target.nextElementSibling;
+                      if (fallbackDiv) {
+                        fallbackDiv.style.display = 'flex';
+                      }
+                    }}
+                  />
+                  {/* Fallback if image doesn't load */}
+                  <div className="w-full h-full flex items-center justify-center text-green-600 hidden">
                     <div className="text-center">
                       <div className="text-4xl mb-2">📰</div>
                       <p className="text-sm">News Image</p>

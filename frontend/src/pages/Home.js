@@ -212,11 +212,31 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Header with Modern Typography */}
           <div className="text-center mb-20">
+            {/* Company Logo Added Here */}
+            <div className="flex justify-center mb-8">
+              <div className="w-24 h-24 flex items-center justify-center">
+                <img 
+                  src="/images/logo/elitess-logo.png" 
+                  alt="Elitess Global" 
+                  className="w-full h-full object-contain rounded-full"
+                  onError={(e) => {
+                    // Fallback if image doesn't exist
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                {/* Fallback logo if image doesn't load */}
+                <div className="w-24 h-24 bg-gradient-to-br from-primary to-green-600 rounded-full hidden items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-3xl">E</span>
+                </div>
+              </div>
+            </div>
+
             <div className="inline-block mb-6">
               <div className="w-20 h-px bg-gradient-to-r from-transparent via-green-500 to-transparent mx-auto mb-4"></div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                 The <span className="relative">
-                  <span className="text-green-600">Elites Global</span>
+                  <span className="text-green-600">Elitess Global</span>
                   <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-200 transform -skew-x-12"></span>
                 </span> Advantage
               </h2>
@@ -227,6 +247,7 @@ const Home = () => {
             </p>
           </div>
 
+          {/* Rest of your existing code remains the same... */}
           {/* Updated Products Section with Your Product Data */}
           <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -437,7 +458,7 @@ const Home = () => {
                
                 {/* Quote */}
                 <blockquote className="text-2xl text-gray-800 italic mb-8 leading-relaxed font-light max-w-4xl mx-auto">
-                  "At Elites Global, every product is a message. Every transaction is a legacy. Every partner is a co-architect of transformation."
+                  "At Elitess Global, every product is a message. Every transaction is a legacy. Every partner is a co-architect of transformation."
                 </blockquote>
                 
                 {/* Separator */}
@@ -582,7 +603,7 @@ const Home = () => {
                         Your platform can position Western Maharashtra as a global trade powerhouse—connecting its sugar, textiles, fruits, and handicrafts to buyers across continents.
                       </p>
                       <p className="text-lg text-gray-700 leading-relaxed font-light">
-                        By offering compliance-ready documentation, branding support, and strategic matchmaking, Elites Global becomes the gateway through which regional excellence meets international demand.
+                        By offering compliance-ready documentation, branding support, and strategic matchmaking, Elitess Global becomes the gateway through which regional excellence meets international demand.
                       </p>
                     </div>
 
