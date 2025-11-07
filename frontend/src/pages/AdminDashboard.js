@@ -14,6 +14,8 @@ const AdminDashboard = () => {
     verifiedFarmers: 0,
     totalProducts: 0
   });
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -134,6 +136,16 @@ const AdminDashboard = () => {
       console.error('Error verifying product:', error);
       alert('Error verifying product. Please try again.');
     }
+  };
+
+  const handleViewDetails = (product) => {
+    setSelectedProduct(product);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
   };
 
   const handleLogout = () => {
@@ -280,24 +292,35 @@ const AdminDashboard = () => {
               <PendingProductsTab 
                 products={pendingProducts}
                 onVerifyProduct={handleVerifyProduct}
+                onViewDetails={handleViewDetails}
               />
             )}
             {activeTab === 'products' && (
               <AllProductsTab 
                 products={allProducts}
                 onVerifyProduct={handleVerifyProduct}
+                onViewDetails={handleViewDetails}
               />
             )}
             {activeTab === 'analytics' && <AnalyticsTab stats={stats} />}
           </div>
         </div>
       </div>
+
+      {/* Product Details Modal */}
+      {showModal && selectedProduct && (
+        <ProductDetailsModal 
+          product={selectedProduct}
+          onClose={handleCloseModal}
+          onVerifyProduct={handleVerifyProduct}
+        />
+      )}
     </div>
   );
 };
 
-// Tab Components - Keep these local components
-const PendingProductsTab = ({ products, onVerifyProduct }) => (
+// Tab Components
+const PendingProductsTab = ({ products, onVerifyProduct, onViewDetails }) => (
   <div>
     <h3 className="text-xl font-semibold text-gray-800 mb-6">Pending Product Verifications</h3>
     
@@ -380,7 +403,10 @@ const PendingProductsTab = ({ products, onVerifyProduct }) => (
               >
                 Reject Product
               </button>
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold transition">
+              <button 
+                onClick={() => onViewDetails(product)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+              >
                 View Details
               </button>
             </div>
@@ -391,7 +417,7 @@ const PendingProductsTab = ({ products, onVerifyProduct }) => (
   </div>
 );
 
-const AllProductsTab = ({ products, onVerifyProduct }) => (
+const AllProductsTab = ({ products, onVerifyProduct, onViewDetails }) => (
   <div>
     <h3 className="text-xl font-semibold text-gray-800 mb-6">All Products</h3>
     
@@ -461,7 +487,10 @@ const AllProductsTab = ({ products, onVerifyProduct }) => (
                       </button>
                     </>
                   )}
-                  <button className="text-blue-600 hover:text-blue-900 ml-3">
+                  <button 
+                    onClick={() => onViewDetails(product)}
+                    className="text-blue-600 hover:text-blue-900 ml-3"
+                  >
                     View
                   </button>
                 </td>
@@ -532,5 +561,275 @@ const AnalyticsTab = ({ stats }) => (
     </div>
   </div>
 );
+// Product Details Modal Component
+const ProductDetailsModal = ({ product, onClose, onVerifyProduct }) => {
+  // Get backend base URL from environment or use default
+  const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+  // Function to get full image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // If it's a relative path starting with /uploads, prepend backend URL
+    if (imagePath.startsWith('/uploads/')) {
+      return `${BACKEND_URL}${imagePath}`;
+    }
+    
+    // If it's just a filename, construct the full path
+    return `${BACKEND_URL}/uploads/products/${imagePath}`;
+  };
+
+  // Function to handle image loading errors
+  const handleImageError = (e, imagePath) => {
+    console.error('Image failed to load:', imagePath);
+    e.target.style.display = 'none';
+    
+    // Show error message
+    const errorDiv = e.target.nextSibling;
+    if (errorDiv) {
+      errorDiv.style.display = 'block';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-800">Product Details</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-2xl font-bold bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Product Images */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Product Images</h3>
+              {product.images && product.images.length > 0 ? (
+                <div className="space-y-4">
+                  {product.images.map((imagePath, index) => {
+                    const fullImageUrl = getImageUrl(imagePath);
+                    return (
+                      <div key={index} className="border rounded-lg overflow-hidden">
+                        <div className="bg-gray-100 p-3 border-b">
+                          <span className="text-sm font-medium text-gray-600">
+                            Image {index + 1}
+                          </span>
+                        </div>
+                        <div className="p-4">
+                          {fullImageUrl ? (
+                            <div className="flex flex-col items-center">
+                              <img
+                                src={fullImageUrl}
+                                alt={`Product ${index + 1}`}
+                                className="max-w-full max-h-64 object-contain rounded"
+                                onError={(e) => handleImageError(e, fullImageUrl)}
+                              />
+                              <div className="hidden text-center py-4 bg-gray-100 rounded w-full mt-2">
+                                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                  <span className="text-gray-600 text-xl">⚠️</span>
+                                </div>
+                                <p className="text-gray-600 font-medium">Image failed to load</p>
+                                <p className="text-gray-500 text-xs mt-1 break-all">
+                                  URL: {fullImageUrl}
+                                </p>
+                                <p className="text-gray-400 text-xs mt-1">
+                                  Check if the backend is running and serving static files
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 bg-gray-100 rounded">
+                              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <span className="text-gray-600 text-xl">📷</span>
+                              </div>
+                              <p className="text-gray-600">Invalid image path</p>
+                              <p className="text-gray-400 text-xs mt-1 break-all">
+                                {imagePath}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-gray-400 text-2xl">📷</span>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-600 mb-2">No Images Available</h4>
+                  <p className="text-gray-500 text-sm">This product doesn't have any images uploaded.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Product Information */}
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="bg-white rounded-lg border p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Product Name:</span>
+                    <span className="font-semibold text-gray-800 text-right">{product.name}</span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Verification ID:</span>
+                    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-right">
+                      {product.verificationId}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Category:</span>
+                    <span className="font-medium capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                      {product.category}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Quantity:</span>
+                    <span className="font-medium text-gray-800">
+                      {product.quantity} {product.unit}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Price:</span>
+                    <span className="font-semibold text-green-600">
+                      ₹{product.price}/{product.unit}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Status:</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      product.verificationStatus === 'approved' 
+                        ? 'bg-green-100 text-green-800'
+                        : product.verificationStatus === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {product.verificationStatus?.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Farmer Information */}
+              {product.farmer && (
+                <div className="bg-white rounded-lg border p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Farmer Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 font-medium">Farmer Name:</span>
+                      <span className="font-medium text-gray-800">{product.farmer.name}</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 font-medium">Farm Name:</span>
+                      <span className="font-medium text-gray-800">{product.farmer.farmName}</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 font-medium">Location:</span>
+                      <span className="font-medium text-gray-800">{product.farmer.location}</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 font-medium">Contact:</span>
+                      <span className="font-medium text-gray-800">
+                        {product.farmer.phone || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Product Details */}
+              <div className="bg-white rounded-lg border p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Product Details</h3>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-600 font-medium block mb-2">Description:</span>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-lg border text-sm">
+                      {product.description || 'No description provided.'}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Farm Location:</span>
+                    <span className="font-medium text-gray-800 text-right">
+                      {product.farmLocation}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Harvest Date:</span>
+                    <span className="font-medium text-gray-800">
+                      {new Date(product.harvestDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 font-medium">Created Date:</span>
+                    <span className="font-medium text-gray-800">
+                      {new Date(product.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Debug Information */}
+          <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+            <h4 className="font-semibold text-gray-700 mb-2">Image Debug Information:</h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p><strong>Backend URL:</strong> {BACKEND_URL}</p>
+              <p><strong>Images count:</strong> {product.images?.length || 0}</p>
+              {product.images?.map((imagePath, index) => (
+                <div key={index} className="border-t pt-1">
+                  <p><strong>Image {index + 1}:</strong></p>
+                  <p className="ml-2">Original: {imagePath}</p>
+                  <p className="ml-2">Full URL: {getImageUrl(imagePath)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          {product.verificationStatus === 'pending' && (
+            <div className="flex space-x-4 mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  onVerifyProduct(product._id, 'approved');
+                  onClose();
+                }}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+              >
+                <span>✓</span>
+                <span>Approve Product</span>
+              </button>
+              <button
+                onClick={() => {
+                  onVerifyProduct(product._id, 'rejected');
+                  onClose();
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+              >
+                <span>✕</span>
+                <span>Reject Product</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default AdminDashboard;

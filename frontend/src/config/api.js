@@ -1,22 +1,25 @@
+// API Configuration
 const API_CONFIG = {
-  // Use environment variable or default to localhost
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {
-      REGISTER: '/auth/register',
-      LOGIN: '/auth/login',
-      PROFILE: '/auth/profile'
+      FARMER_LOGIN: '/auth/farmer/login',
+      FARMER_REGISTER: '/auth/farmer/register',
+      ADMIN_LOGIN: '/auth/admin/login',
+      PROFILE: '/auth/profile',
+      LOGOUT: '/auth/logout'
     },
     PRODUCTS: {
-      CREATE: '/products',
-      LIST: '/products',
-      MY_PRODUCTS: '/products/my-products',
-      DETAIL: '/products/:id',
-      VERIFY: '/products/verify/:id'
+      BASE: '/products',
+      PENDING: '/admin/products/pending',
+      VERIFY: '/admin/products/verify'
     },
-    HEALTH: '/health'
-  },
-  TIMEOUT: 10000
+    ADMIN: {
+      USERS: '/admin/users',
+      STATS: '/admin/stats'
+    }
+  }
 };
 
 export default API_CONFIG;

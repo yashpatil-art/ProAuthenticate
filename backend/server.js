@@ -6,7 +6,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
-
 // Load env variables
 dotenv.config();
 
@@ -40,7 +39,7 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
-// Serve uploaded files statically
+// ✅ CORRECT: Serve uploaded files statically (ONLY ONCE)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
@@ -59,6 +58,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 
+// ❌ REMOVE THIS DUPLICATE LINE:
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Existing routes
 app.get('/api/health', (req, res) => {
   res.json({
@@ -68,7 +70,6 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
