@@ -10,7 +10,7 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
     unit: 'kg',
     farmLocation: farmLocation || '',
     harvestDate: '',
-    images: [],
+    images: [], // Changed back to array for consistency
     qualityParameters: {
       purity: '',
       grade: '',
@@ -48,11 +48,26 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setFormDataState(prev => ({
-      ...prev,
-      images: [...prev.images, ...files]
-    }));
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // Validate file size (5MB max) and type for each file
+      const validFiles = Array.from(files).filter(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`Image ${file.name} size should be less than 5MB`);
+          return false;
+        }
+        if (!file.type.startsWith('image/')) {
+          alert(`File ${file.name} is not an image`);
+          return false;
+        }
+        return true;
+      });
+
+      setFormDataState(prev => ({
+        ...prev,
+        images: [...prev.images, ...validFiles]
+      }));
+    }
   };
 
   const removeImage = (index) => {
@@ -62,7 +77,6 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
     }));
   };
 
-  // In the handleSubmit function, update the formData preparation:
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -83,10 +97,16 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
       // Append quality parameters as JSON string
       formData.append('qualityParameters', JSON.stringify(formDataState.qualityParameters));
       
-      // Append images
-      formDataState.images.forEach(image => {
-        formData.append('images', image);
+      // Append images - USE 'images' FIELD NAME TO MATCH BACKEND
+      formDataState.images.forEach((image, index) => {
+        formData.append('images', image); // This must be 'images' to match upload.array('images', 5)
       });
+
+      // Debug: Log form data contents
+      console.log('📦 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
 
       await onSubmit(formData);
     } catch (error) {
@@ -325,17 +345,17 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
             </div>
           )}
 
-          {/* Image Upload */}
+          {/* Image Upload - Multiple Images */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Product Images</h3>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
                 type="file"
-                multiple
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="hidden"
                 id="product-images"
+                multiple // Allow multiple files
               />
               <label
                 htmlFor="product-images"
@@ -345,21 +365,22 @@ const ProductModal = ({ onClose, onSubmit, farmLocation }) => {
                   <span className="text-primary text-xl">📷</span>
                 </div>
                 <p className="text-gray-600 mb-1">Click to upload product images</p>
-                <p className="text-gray-500 text-sm">Upload up to 5 images (JPEG, PNG, Max 5MB each)</p>
+                <p className="text-gray-500 text-sm">JPEG, PNG, Max 5MB each</p>
+                <p className="text-gray-500 text-sm">You can upload multiple images</p>
               </label>
             </div>
 
             {/* Preview Images */}
             {formDataState.images.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm text-gray-600 mb-2">Selected images ({formDataState.images.length}/5):</p>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <p className="text-sm text-gray-600 mb-2">Selected images:</p>
+                <div className="flex flex-wrap gap-4">
                   {formDataState.images.map((image, index) => (
                     <div key={index} className="relative">
                       <img
                         src={URL.createObjectURL(image)}
                         alt={`Preview ${index + 1}`}
-                        className="w-20 h-20 object-cover rounded-lg"
+                        className="w-24 h-24 object-cover rounded-lg"
                       />
                       <button
                         type="button"

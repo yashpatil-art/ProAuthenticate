@@ -1,10 +1,12 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
+import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
+
+// Import configurations
+import serverConfig from './config/server.js';
 
 // Load env variables
 dotenv.config();
@@ -17,36 +19,45 @@ import adminRoutes from './routes/admin.js';
 // Initialize Express app
 const app = express();
 
-// Get directory name for ES modules
+// Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Apply middleware from configuration
+app.use(serverConfig.corsConfig);
+app.use(serverConfig.securityHeaders);
+app.use(serverConfig.compressionConfig);
+app.use(serverConfig.loggingConfig);
+
+// Apply rate limiting
+app.use(serverConfig.limiter);
+app.use('/api/auth', serverConfig.authLimiter);
+
+// Body parsing middleware
+app.use(express.json({ limit: serverConfig.serverConfig.upload.maxFileSize }));
+app.use(express.urlencoded({ extended: true, limit: serverConfig.serverConfig.upload.maxFileSize }));
+
+// Configure Cloudinary
+cloudinary.config(serverConfig.cloudinaryConfig);
+
+// ✅ STATIC FILE SERVING - ADD THIS SECTION
+// Serve static files from uploads directory
+const uploadsDir = path.join(__dirname, 'uploads');
+app.use('/api/uploads', express.static(uploadsDir));
+
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads/products');
+import fs from 'fs';
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('✅ Created uploads directory');
+  console.log('✅ Created uploads directory:', uploadsDir);
 }
-
-// CORS configuration
-app.use(cors({
-  origin: 'http://localhost:3000', // React dev server
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Middleware
-app.use(express.json());
-
-// ✅ CORRECT: Serve uploaded files statically (ONLY ONCE)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/proauthenticate');
-    console.log('✅ MongoDB Connected: localhost');
+    console.log('🔄 Connecting to MongoDB...');
+    await mongoose.connect(serverConfig.dbConfig.url, serverConfig.dbConfig.options);
+    console.log('✅ MongoDB Connected Successfully');
   } catch (error) {
     console.log('❌ MongoDB connection error:', error.message);
     console.log('⚠️  Starting without database connection...');
@@ -58,36 +69,123 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 
-// ❌ REMOVE THIS DUPLICATE LINE:
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Existing routes
+// Health check and test routes
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: 'Server is healthy 🟢',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: serverConfig.serverConfig.env,
+    port: serverConfig.serverConfig.port,
+    database: mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected',
+    cloudinary: !!serverConfig.cloudinaryConfig.cloud_name ? '✅ Configured' : '❌ Not configured',
+    staticFiles: '✅ Enabled'
   });
 });
+
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
     message: 'All systems operational! 🚀',
+    server: {
+      port: serverConfig.serverConfig.port,
+      environment: serverConfig.serverConfig.env,
+      cors: serverConfig.serverConfig.cors.enabled
+    },
     features: {
-      server: 'running',
-      database: 'connected',
-      api: 'responsive'
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      cloudinary: !!serverConfig.cloudinaryConfig.cloud_name ? 'configured' : 'not configured',
+      uploads: 'enabled',
+      staticFiles: 'enabled'
     }
   });
 });
 
-app.get('/api/blockchain/test', (req, res) => {
+// ✅ ADD STATIC FILES TEST ENDPOINT
+app.get('/api/test-static-files', (req, res) => {
+  const testFiles = [
+    'products/product-1781649078286-236520009.webp',
+    'products/product-1761649078288-506400565.webp'
+  ];
+  
+  const fileStatus = testFiles.map(file => {
+    const filePath = path.join(uploadsDir, file);
+    const exists = fs.existsSync(filePath);
+    return {
+      file,
+      exists,
+      url: `http://localhost:${serverConfig.serverConfig.port}/api/uploads/${file}`,
+      directPath: filePath
+    };
+  });
+
   res.json({
     success: true,
-    message: 'Blockchain connection test - Development Mode',
-    mode: 'mock',
-    features: ['authentication', 'product_tracking', 'verification']
+    message: 'Static files configuration test',
+    uploadsDirectory: uploadsDir,
+    staticRoute: '/api/uploads',
+    files: fileStatus,
+    note: 'Access files via: http://localhost:5001/api/uploads/products/filename.webp'
+  });
+});
+
+// Enhanced Cloudinary test endpoint
+app.get('/api/cloudinary/test', async (req, res) => {
+  try {
+    if (!serverConfig.cloudinaryConfig.cloud_name) {
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudinary not configured',
+        note: 'Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env'
+      });
+    }
+
+    const result = await cloudinary.api.root_folders();
+    res.json({
+      success: true,
+      message: 'Cloudinary connected successfully',
+      cloud_name: serverConfig.cloudinaryConfig.cloud_name,
+      folders: result.folders
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Cloudinary configuration issue',
+      error: error.message,
+      config: {
+        cloud_name: serverConfig.cloudinaryConfig.cloud_name ? '✅ Set' : '❌ Missing',
+        api_key: serverConfig.cloudinaryConfig.api_key ? '✅ Set' : '❌ Missing',
+        api_secret: serverConfig.cloudinaryConfig.api_secret ? '✅ Set' : '❌ Missing'
+      }
+    });
+  }
+});
+
+// 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('🚨 Global Error Handler:', err);
+
+  // CORS error
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS Error: Origin not allowed'
+    });
+  }
+
+  // Default error
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    ...(serverConfig.errorConfig.showStack && { stack: err.stack })
   });
 });
 
@@ -95,35 +193,52 @@ app.get('/api/blockchain/test', (req, res) => {
 const startServer = async () => {
   await connectDB();
   
-  const PORT = process.env.PORT || 5001;
+  const PORT = serverConfig.serverConfig.port;
   
-  app.listen(PORT, () => {
-    console.log('\n============================================================');
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n' + '='.repeat(60));
     console.log('🚀 PROAUTHENTICATE BACKEND SERVER STARTED SUCCESSFULLY!');
-    console.log('============================================================');
+    console.log('='.repeat(60));
     console.log(`📍 Server Port: ${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌍 Environment: ${serverConfig.serverConfig.env}`);
+    console.log(`🌐 CORS Enabled: ${serverConfig.serverConfig.cors.enabled}`);
     console.log(`🗄️  Database: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Not connected'}`);
-    console.log(`⛓️  Blockchain: 🔧 Development Mode (Mock)`);
+    console.log(`☁️  Cloudinary: ${serverConfig.cloudinaryConfig.cloud_name ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(`📁 Static Files: ✅ Enabled (${uploadsDir})`);
     console.log(`📱 API URL: http://localhost:${PORT}/api`);
-    console.log('============================================================');
+    console.log('='.repeat(60));
     console.log('\n📋 Available Endpoints:');
     console.log('   ✅ GET  /api/health           - Server health check');
     console.log('   ✅ GET  /api/test             - Test all features');
-    console.log('   ✅ GET  /api/blockchain/test  - Test blockchain connection');
-    console.log('   ✅ POST /api/auth/register    - Register user');
+    console.log('   ✅ GET  /api/cloudinary/test  - Test Cloudinary');
+    console.log('   ✅ GET  /api/test-static-files - Test static file serving');
     console.log('   ✅ POST /api/auth/login       - Login user');
-    console.log('   ✅ GET  /api/auth/profile     - Get user profile');
+    console.log('   ✅ POST /api/auth/register    - Register user');
     console.log('   ✅ POST /api/products         - Create product');
-    console.log('   ✅ GET  /api/products         - Get all products');
-    console.log('   ✅ GET  /api/products/my-products - Get farmer products');
-    console.log('\n🎯 Next Steps:');
-    console.log('   1. Test the API endpoints in browser or Postman');
-    console.log('   2. Add authentication routes');
-    console.log('   3. Add product management routes');
-    console.log('   4. Connect frontend to backend');
-    console.log('============================================================\n');
+    console.log('='.repeat(60) + '\n');
+    
+    // Show static file access examples
+    console.log('📁 Static File Access Examples:');
+    console.log(`   📷 http://localhost:${PORT}/api/uploads/products/product-1781649078286-236520009.webp`);
+    console.log(`   📷 http://localhost:${PORT}/api/uploads/products/product-1761649078288-506400565.webp`);
+    console.log('='.repeat(60) + '\n');
   });
 };
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log('❌ Unhandled Promise Rejection:', err.message);
+  if (serverConfig.errorConfig.exitOnError) {
+    process.exit(1);
+  }
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.log('❌ Uncaught Exception:', err.message);
+  if (serverConfig.errorConfig.exitOnError) {
+    process.exit(1);
+  }
+});
 
 startServer();

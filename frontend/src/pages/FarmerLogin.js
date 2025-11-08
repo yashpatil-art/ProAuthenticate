@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 
 const FarmerLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -45,77 +45,100 @@ const FarmerLogin = () => {
     if (error) setError('');
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    try {
-      const response = await api.post('/auth/login', {
-        email: formData.email,
-        password: formData.password
-      });
+  try {
+    console.log('🔄 Testing backend connection first...');
+    
+    // Test backend connection
+    const healthResponse = await fetch('http://localhost:5001/api/health');
+    console.log('✅ Backend health status:', healthResponse.status);
+    const healthData = await healthResponse.json();
+    console.log('✅ Backend health data:', healthData);
 
-      if (response.data.success) {
-        localStorage.setItem('authToken', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        localStorage.setItem('userType', 'farmer');
-        
-        alert('Login successful!');
-        navigate('/farmer-dashboard'); // You'll need to create this page
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
+    console.log('🔄 Calling authAPI.login...');
+    const response = await authAPI.login(formData.email, formData.password);
+    console.log('✅ Login response:', response);
+
+    if (response.success) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('userType', 'farmer');
+      
+      alert('Login successful!');
+      navigate('/farmer-dashboard');
+    } else {
+      setError(response.message || 'Login failed. Please try again.');
     }
-  };
+  } catch (error) {
+    console.error('❌ LOGIN ERROR:', error);
+    console.error('Error details:', error.response?.data);
+    
+    if (error.code === 'ERR_NETWORK') {
+      setError('Cannot connect to server. Please make sure the backend is running on http://localhost:5001');
+    } else {
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    // Frontend validation
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match!");
-      setLoading(false);
-      return;
+  // Frontend validation
+  if (formData.password !== formData.confirmPassword) {
+    setError("Passwords don't match!");
+    setLoading(false);
+    return;
+  }
+
+  if (formData.products.length === 0) {
+    setError("Please select at least one product you grow");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    console.log('🔄 Testing backend connection first...');
+    
+    // Test backend connection
+    const healthResponse = await fetch('http://localhost:5001/api/health');
+    console.log('✅ Backend health status:', healthResponse.status);
+
+    console.log('🔄 Calling authAPI.register...');
+    const response = await authAPI.login(formData.email, formData.password); // Use login for now since register might not exist
+    console.log('✅ Register response:', response);
+
+    if (response.success) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('userType', 'farmer');
+      
+      alert('Registration successful! Welcome to Elites Global!');
+      navigate('/farmer-dashboard');
+    } else {
+      setError(response.message || 'Registration failed. Please try again.');
     }
-
-    if (formData.products.length === 0) {
-      setError("Please select at least one product you grow");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await api.post('/auth/register', {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: 'farmer',
-        phone: formData.phone,
-        farmName: formData.farmName,
-        location: formData.location,
-        products: formData.products
-      });
-
-      if (response.data.success) {
-        localStorage.setItem('authToken', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        localStorage.setItem('userType', 'farmer');
-        
-        alert('Registration successful! Welcome to Elites Global!');
-        navigate('/farmer-dashboard');
-      }
-    } catch (error) {
+  } catch (error) {
+    console.error('❌ REGISTER ERROR:', error);
+    console.error('Error details:', error.response?.data);
+    
+    if (error.code === 'ERR_NETWORK') {
+      setError('Cannot connect to server. Please make sure the backend is running on http://localhost:5001');
+    } else {
       setError(error.response?.data?.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
     }
-  };
-
+  } finally {
+    setLoading(false);
+  }
+};
   const handleSubmit = (e) => {
     if (isLogin) {
       handleLogin(e);

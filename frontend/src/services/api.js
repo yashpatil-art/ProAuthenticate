@@ -1,9 +1,36 @@
 import axios from "axios";
 
-// Create axios instance with base configuration
+// API Configuration - FIXED BASE_URL
+export const API_CONFIG = {
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api', // Added full URL
+  UPLOADS_URL: "http://localhost:5001/uploads", // For serving images
+  TIMEOUT: 10000
+};
+
+// Helper function for image URLs
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return '/placeholder-image.jpg';
+  
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // Handle different path formats
+  if (imagePath.startsWith('/uploads/')) {
+    return `${API_CONFIG.UPLOADS_URL}${imagePath.replace('/uploads', '')}`;
+  }
+  
+  if (imagePath.startsWith('/')) {
+    return `${API_CONFIG.UPLOADS_URL}${imagePath}`;
+  }
+  
+  return `${API_CONFIG.UPLOADS_URL}/${imagePath}`;
+};
+
+// Create axios instance with base configuration - FIXED
 const api = axios.create({
-  baseURL: "http://localhost:5001/api", // Directly specify the backend URL
-  timeout: 10000,
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
@@ -15,12 +42,14 @@ api.interceptors.request.use(
     const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Auth token added to request");
     }
+    
+    // Log request for debugging
+    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => {
-    console.error("Request interceptor error:", error);
+    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -28,15 +57,16 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    console.log("✅ API Response:", response.config.url, response.status);
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
     console.error("❌ API Error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
+      message: error.message,
       code: error.code,
+      status: error.response?.status,
+      url: error.config?.url,
+      data: error.response?.data
     });
 
     // Handle specific error cases
@@ -46,9 +76,14 @@ api.interceptors.response.use(
       localStorage.removeItem("user");
       localStorage.removeItem("userType");
       // Redirect to login page
-      if (window.location.pathname !== "/login") {
+      if (window.location.pathname !== "/login" && window.location.pathname !== "/admin-login") {
         window.location.href = "/login";
       }
+    }
+
+    // Handle network errors specifically
+    if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNREFUSED') {
+      console.error('🌐 Network Error: Backend server is not running or inaccessible');
     }
 
     return Promise.reject(error);
@@ -57,26 +92,46 @@ api.interceptors.response.use(
 
 // API methods for authentication
 export const authAPI = {
-  // Farmer login
-  farmerLogin: async (email, password) => {
+  // Unified login - FIXED: Use the correct endpoint
+  login: async (email, password, userType = 'farmer') => {
     try {
-      const response = await api.post("/auth/farmer/login", {
-        email,
+      console.log(`🔐 Attempting ${userType} login for:`, email);
+      
+      // Your backend uses /auth/login, not separate endpoints
+      const response = await api.post('/auth/login', { 
+        email, 
         password,
+        userType // Send userType if your backend needs it
       });
+      
+      console.log('✅ Login successful:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ Login failed:', error.response?.data || error.message);
       throw error;
     }
   },
 
-  // Admin login
+  // Admin login (specific endpoint if needed)
   adminLogin: async (email, password) => {
     try {
-      const response = await api.post("/auth/admin/login", {
-        email,
+      console.log(`🔐 Attempting admin login for:`, email);
+      const response = await api.post("/auth/login", { 
+        email, 
         password,
+        role: 'admin' // Make sure your backend checks this
       });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Admin login failed:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  // Farmer login
+  farmerLogin: async (email, password) => {
+    try {
+      const response = await api.post("/auth/login", { email, password });
       return response.data;
     } catch (error) {
       throw error;
@@ -86,7 +141,7 @@ export const authAPI = {
   // Register new farmer
   farmerRegister: async (userData) => {
     try {
-      const response = await api.post("/auth/farmer/register", userData);
+      const response = await api.post("/auth/register", userData);
       return response.data;
     } catch (error) {
       throw error;
@@ -130,6 +185,16 @@ export const productAPI = {
     }
   },
 
+  // Get farmer's products
+  getMyProducts: async () => {
+    try {
+      const response = await api.get("/products/my-products");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get single product
   getProduct: async (id) => {
     try {
@@ -140,10 +205,14 @@ export const productAPI = {
     }
   },
 
-  // Create new product
+  // Create new product (with file upload support)
   createProduct: async (productData) => {
     try {
-      const response = await api.post("/products", productData);
+      const response = await api.post("/products", productData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -218,6 +287,19 @@ export const adminAPI = {
       throw error;
     }
   },
+};
+
+// Test backend connection
+export const testConnection = async () => {
+  try {
+    console.log('🧪 Testing backend connection...');
+    const response = await api.get('/health');
+    console.log('✅ Backend connection successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Backend connection failed:', error.message);
+    throw error;
+  }
 };
 
 export default api;

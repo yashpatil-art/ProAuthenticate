@@ -1,5 +1,4 @@
-import api from './api';
-import API_CONFIG from '../config/api';
+import api from '../services/api';
 
 class AuthService {
   // Register new user

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { productAPI } from '../services/api';
 import ProductModal from '../components/ProductModal';
 
 const FarmerDashboard = () => {
@@ -17,87 +17,121 @@ const FarmerDashboard = () => {
   });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = localStorage.getItem('user');
-        if (!userData) {
-          navigate('/farmer-login');
-          return;
-        }
-        
-        setUser(JSON.parse(userData));
-        await fetchProducts();
-        
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        navigate('/farmer-login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [navigate]);
-
-  const fetchProducts = async () => {
-  try {
-    console.log('Fetching products...');
-    const token = localStorage.getItem('authToken');
-    console.log('Current token:', token ? token.substring(0, 20) + '...' : 'No token');
-    
-    const response = await api.get('/products/my-products');
-    console.log('Products response:', response.data);
-    
-    if (response.data.success) {
-      const productsData = response.data.data;
-      setProducts(productsData);
-      
-      // Calculate stats
-      const totalProducts = productsData.length;
-      const verifiedProducts = productsData.filter(p => p.verificationStatus === 'approved').length;
-      const pendingVerification = productsData.filter(p => p.verificationStatus === 'pending').length;
-      
-      setStats({
-        totalProducts,
-        verifiedProducts,
-        pendingVerification,
-        totalSales:0 // Mock data for now
-      });
-    }
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    console.error('Error details:', error.response?.data);
-    alert('Failed to fetch products. Please check console for details.');
-  }
-};
-
-  // CORRECT handleAddProduct function - ONLY ONE VERSION
-  const handleAddProduct = async (formData) => {
+  // Define fetchUserData BEFORE useEffect
+  const fetchUserData = async () => {
     try {
-      const response = await api.post('/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      if (response.data.success) {
-        setShowProductModal(false);
-        await fetchProducts(); // Refresh products list
-        alert('Product added successfully! Waiting for verification.');
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        navigate('/farmer-login');
+        return;
       }
+      
+      setUser(JSON.parse(userData));
+      await fetchProducts();
+      
     } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Failed to add product. Please try again.');
+      console.error('Error fetching user data:', error);
+      navigate('/farmer-login');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      console.log('Fetching products...');
+      
+      const response = await productAPI.getMyProducts();
+      console.log('Products response:', response);
+      
+      if (response.success) {
+        const productsData = response.data;
+        setProducts(productsData);
+        
+        // Calculate stats
+        const totalProducts = productsData.length;
+        const verifiedProducts = productsData.filter(p => p.verificationStatus === 'approved').length;
+        const pendingVerification = productsData.filter(p => p.verificationStatus === 'pending').length;
+        
+        setStats({
+          totalProducts,
+          verifiedProducts,
+          pendingVerification,
+          totalSales: 0 // Mock data for now
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      console.error('Error details:', error.response?.data);
+      alert('Failed to fetch products. Please check console for details.');
+    }
+  };
+
+  const handleAddProduct = async (formData) => {
+  try {
+    console.log('🔄 Starting product creation...');
+    
+    // Debug: Log form data contents
+    console.log('📦 FormData contents being sent:');
+    for (let [key, value] of formData.entries()) {
+      if (key === 'images') {
+        console.log(`  ${key}:`, value, '(File)');
+      } else {
+        console.log(`  ${key}:`, value);
+      }
+    }
+
+    console.log('🔄 Submitting to API...');
+    const response = await productAPI.createProduct(formData);
+    console.log('✅ Product creation response:', response);
+
+    if (response.success) {
+      setShowProductModal(false);
+      await fetchProducts();
+      alert('Product added successfully! Waiting for verification.');
+    } else {
+      alert(response.message || 'Failed to add product');
+    }
+  } catch (error) {
+    console.error('❌ FULL Error details:', error);
+    console.error('❌ Error response data:', error.response?.data);
+    
+    // More specific error handling
+    if (error.response?.data?.includes('MulterError: Unexpected field')) {
+      alert('Error: Field name mismatch. The system expects "images" field for file uploads.');
+    } else {
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error
+        || error.message 
+        || 'Failed to add product';
+      
+      alert(`Error: ${errorMessage}`);
+    }
+  }
+};
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     localStorage.removeItem('userType');
     navigate('/');
   };
+
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        console.log('🧪 Testing backend connection...');
+        const response = await fetch('http://localhost:5001/api/health');
+        const data = await response.json();
+        console.log('✅ Backend is accessible:', data);
+      } catch (error) {
+        console.error('❌ Backend connection failed:', error);
+        alert('Cannot connect to server. Make sure backend is running on port 5001.');
+      }
+    };
+
+    testConnection();
+    fetchUserData();
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -310,7 +344,7 @@ const FarmerDashboard = () => {
   );
 };
 
-// Tab Components (Updated ProductsTab)
+// Tab Components
 const OverviewTab = ({ user, products }) => (
   <div>
     <h3 className="text-xl font-semibold text-gray-800 mb-6">Dashboard Overview</h3>
@@ -410,14 +444,23 @@ const ProductsTab = ({ products, onAddProduct, onRefresh }) => (
                   <div className="flex items-center">
                     {product.images && product.images.length > 0 && (
                       <img 
-                        src={`http://localhost:5001${product.images[0]}`} 
+                        src={product.images[0]}
                         alt={product.name}
                         className="w-10 h-10 rounded-lg object-cover mr-3"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg';
+                          e.target.onerror = null;
+                        }}
                       />
+                    )}
+                    {(!product.images || product.images.length === 0) && (
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                        <span className="text-gray-400 text-sm">📦</span>
+                      </div>
                     )}
                     <div>
                       <div className="font-medium text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-500">{product.description}</div>
+                      <div className="text-sm text-gray-500 line-clamp-2 max-w-xs">{product.description}</div>
                     </div>
                   </div>
                 </td>

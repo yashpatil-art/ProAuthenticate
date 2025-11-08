@@ -564,7 +564,7 @@ const AnalyticsTab = ({ stats }) => (
 // Product Details Modal Component
 const ProductDetailsModal = ({ product, onClose, onVerifyProduct }) => {
   // Get backend base URL from environment or use default
-  const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   // Function to get full image URL
   const getImageUrl = (imagePath) => {

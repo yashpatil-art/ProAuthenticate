@@ -5,7 +5,7 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
-// ✅ Register User (Updated to handle all farmer fields)
+// ✅ Register User
 router.post('/register', async (req, res) => {
   try {
     const { 
@@ -16,9 +16,7 @@ router.post('/register', async (req, res) => {
       phone, 
       farmName, 
       location, 
-      products,
-      address,
-      shippingAddress
+      products 
     } = req.body;
 
     console.log('📝 Registration request received:', { 
@@ -38,31 +36,20 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user data object
-    const userData = {
+    // Create user
+    const user = new User({
       name,
       email,
       password: hashedPassword,
-      role: role || 'buyer'
-    };
+      role: role || 'farmer',
+      phone,
+      farmName,
+      location,
+      products: products || [],
+      verificationStatus: 'pending'
+    });
 
-    // Add role-specific fields
-    if (role === 'farmer') {
-      userData.phone = phone;
-      userData.farmName = farmName;
-      userData.location = location;
-      userData.products = products || [];
-      userData.verificationStatus = 'pending';
-    } else if (role === 'buyer') {
-      userData.address = address;
-      if (shippingAddress) {
-        userData.shippingAddress = shippingAddress;
-      }
-    }
-
-    const user = new User(userData);
     await user.save();
-
     console.log('✅ User registered successfully:', user.email);
 
     // Generate JWT token
@@ -72,34 +59,24 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Prepare user response data
+    // Prepare response
     const userResponse = {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
+      farmName: user.farmName,
+      location: user.location,
+      products: user.products,
+      verificationStatus: user.verificationStatus,
       isActive: user.isActive,
       createdAt: user.createdAt
     };
 
-    // Add farmer-specific fields to response
-    if (role === 'farmer') {
-      userResponse.phone = user.phone;
-      userResponse.farmName = user.farmName;
-      userResponse.location = user.location;
-      userResponse.products = user.products;
-      userResponse.verificationStatus = user.verificationStatus;
-      userResponse.canSubmitProducts = user.verificationStatus === 'approved';
-    } else if (role === 'buyer') {
-      userResponse.address = user.address;
-      userResponse.shippingAddress = user.shippingAddress;
-    }
-
     res.status(201).json({
       success: true,
-      message: role === 'farmer' 
-        ? 'Farmer registered successfully! Please wait for admin verification.' 
-        : 'User registered successfully',
+      message: 'Farmer registered successfully! Please wait for admin verification.',
       data: {
         user: userResponse,
         token
@@ -109,7 +86,6 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('❌ Registration error:', error);
     
-    // Handle duplicate key error (MongoDB)
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -117,7 +93,6 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -135,7 +110,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ✅ Login User (Updated to include all user fields)
+// ✅ Login User
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -148,14 +123,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Invalid email or password'
-      });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(400).json({
-        success: false,
-        message: 'Account is deactivated. Please contact support.'
       });
     }
 
@@ -179,30 +146,21 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Prepare user response data
+    // Prepare response
     const userResponse = {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
+      farmName: user.farmName,
+      location: user.location,
+      products: user.products,
+      verificationStatus: user.verificationStatus,
       isActive: user.isActive,
       lastLogin: user.lastLogin,
       createdAt: user.createdAt
     };
-
-    // Add role-specific fields
-    if (user.role === 'farmer') {
-      userResponse.phone = user.phone;
-      userResponse.farmName = user.farmName;
-      userResponse.location = user.location;
-      userResponse.products = user.products;
-      userResponse.verificationStatus = user.verificationStatus;
-      userResponse.canSubmitProducts = user.verificationStatus === 'approved';
-      userResponse.documents = user.documents;
-    } else if (user.role === 'buyer') {
-      userResponse.address = user.address;
-      userResponse.shippingAddress = user.shippingAddress;
-    }
 
     console.log('✅ Login successful for:', user.email);
 
@@ -246,81 +204,15 @@ router.get('/profile', async (req, res) => {
       });
     }
 
-    // Prepare user response
-    const userResponse = user.toObject();
-    
-    // Add virtual fields
-    if (user.role === 'buyer') {
-      userResponse.fullAddress = user.fullAddress;
-    }
-    if (user.role === 'farmer') {
-      userResponse.canSubmitProducts = user.canSubmitProducts();
-    }
-
     res.json({
       success: true,
-      data: { user: userResponse }
+      data: { user }
     });
   } catch (error) {
     console.error('❌ Profile error:', error);
     res.status(401).json({
       success: false,
       message: 'Invalid token'
-    });
-  }
-});
-
-// ✅ Update User Profile
-router.put('/profile', async (req, res) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'No token provided'
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-    const user = await User.findById(decoded.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Update allowed fields based on role
-    const allowedFields = ['name', 'phone', 'location', 'preferences'];
-    
-    if (user.role === 'farmer') {
-      allowedFields.push('farmName', 'products');
-    } else if (user.role === 'buyer') {
-      allowedFields.push('address', 'shippingAddress');
-    }
-
-    // Update fields
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        user[field] = req.body[field];
-      }
-    });
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: { user }
-    });
-  } catch (error) {
-    console.error('❌ Profile update error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during profile update',
-      error: error.message
     });
   }
 });
@@ -333,8 +225,7 @@ router.get('/test', (req, res) => {
     endpoints: {
       'POST /register': 'Register a new user',
       'POST /login': 'Login user', 
-      'GET /profile': 'Get user profile (requires token)',
-      'PUT /profile': 'Update user profile (requires token)'
+      'GET /profile': 'Get user profile (requires token)'
     }
   });
 });
