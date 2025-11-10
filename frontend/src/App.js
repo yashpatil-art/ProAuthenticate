@@ -17,6 +17,13 @@ import CustomerDashboard from './pages/CustomerDashboard'; // ← ADD THIS IMPOR
 import './styles/globals.css';
 import Sustainability from './pages/Sustainability';
 import News from './pages/News';
+// In your App.js, add these routes:
+import AdminAIRatingDisplay from './components/AdminAIRatingDisplay';
+import CustomerAIRatedProducts from './components/CustomerAIRatedProducts';
+
+
+// Inside your Routes:
+
 
 
 // React Router future flags to suppress warnings
@@ -50,6 +57,8 @@ function App() {
             <Route path="/news" element={<News />} />
             {/* Add a catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />
+            <Route path="/admin/ai-ratings" element={<AdminAIRatingDisplay />} />
+            <Route path="/products" element={<CustomerAIRatedProducts />} />
           </Routes>
         </main>
         <Footer />

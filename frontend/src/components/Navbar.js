@@ -42,7 +42,12 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className={`${isActiveLink('/')} transition duration-300`}>Home</Link>
-            <Link to="/products" className={`${isActiveLink('/products')} transition duration-300`}>Products</Link>
+            
+            {/* 🍌 Quality Rated Bananas Link Added */}
+            <Link to="/products" className={`${isActiveLink('/products')} transition duration-300`}>
+              Products
+            </Link>
+            
             <Link to="/about" className={`${isActiveLink('/about')} transition duration-300`}>About Us</Link>
             {/* Sustainability Link Added */}
             <Link to="/sustainability" className={`${isActiveLink('/sustainability')} transition duration-300`}>Sustainability</Link>
@@ -98,7 +103,12 @@ const Navbar = () => {
           <div className="md:hidden bg-white border-t py-4 slide-in">
             <div className="flex flex-col space-y-4 px-4">
               <Link to="/" className={`${isActiveLink('/')} py-2`} onClick={() => setIsMenuOpen(false)}>Home</Link>
-              <Link to="/products" className={`${isActiveLink('/products')} py-2`} onClick={() => setIsMenuOpen(false)}>Products</Link>
+              
+              {/* 🍌 Quality Rated Bananas Link Added for Mobile */}
+              <Link to="/products" className={`${isActiveLink('/products')} py-2`} onClick={() => setIsMenuOpen(false)}>
+                🍌 Quality Rated Bananas
+              </Link>
+              
               <Link to="/about" className={`${isActiveLink('/about')} py-2`} onClick={() => setIsMenuOpen(false)}>About Us</Link>
               {/* Fixed Sustainability Link */}
               <Link to="/sustainability" className={`${isActiveLink('/sustainability')} py-2`} onClick={() => setIsMenuOpen(false)}>Sustainability</Link>

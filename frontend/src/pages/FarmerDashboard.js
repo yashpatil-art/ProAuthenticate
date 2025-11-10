@@ -17,7 +17,6 @@ const FarmerDashboard = () => {
   });
   const navigate = useNavigate();
 
-  // Define fetchUserData BEFORE useEffect
   const fetchUserData = async () => {
     try {
       const userData = localStorage.getItem('user');
@@ -44,20 +43,20 @@ const FarmerDashboard = () => {
       const response = await productAPI.getMyProducts();
       console.log('Products response:', response);
       
-      if (response.success) {
-        const productsData = response.data;
+      if (response.data.success) {
+        const productsData = response.data.data;
         setProducts(productsData);
         
         // Calculate stats
         const totalProducts = productsData.length;
-        const verifiedProducts = productsData.filter(p => p.verificationStatus === 'approved').length;
-        const pendingVerification = productsData.filter(p => p.verificationStatus === 'pending').length;
+        const verifiedProducts = productsData.filter(p => p.status === 'APPROVED').length;
+        const pendingVerification = productsData.filter(p => p.status === 'PENDING').length;
         
         setStats({
           totalProducts,
           verifiedProducts,
           pendingVerification,
-          totalSales: 0 // Mock data for now
+          totalSales: 0
         });
       }
     } catch (error) {
@@ -68,47 +67,46 @@ const FarmerDashboard = () => {
   };
 
   const handleAddProduct = async (formData) => {
-  try {
-    console.log('🔄 Starting product creation...');
-    
-    // Debug: Log form data contents
-    console.log('📦 FormData contents being sent:');
-    for (let [key, value] of formData.entries()) {
-      if (key === 'images') {
-        console.log(`  ${key}:`, value, '(File)');
-      } else {
-        console.log(`  ${key}:`, value);
-      }
-    }
-
-    console.log('🔄 Submitting to API...');
-    const response = await productAPI.createProduct(formData);
-    console.log('✅ Product creation response:', response);
-
-    if (response.success) {
-      setShowProductModal(false);
-      await fetchProducts();
-      alert('Product added successfully! Waiting for verification.');
-    } else {
-      alert(response.message || 'Failed to add product');
-    }
-  } catch (error) {
-    console.error('❌ FULL Error details:', error);
-    console.error('❌ Error response data:', error.response?.data);
-    
-    // More specific error handling
-    if (error.response?.data?.includes('MulterError: Unexpected field')) {
-      alert('Error: Field name mismatch. The system expects "images" field for file uploads.');
-    } else {
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data?.error
-        || error.message 
-        || 'Failed to add product';
+    try {
+      console.log('🔄 Starting product creation...');
       
-      alert(`Error: ${errorMessage}`);
+      // Debug: Log form data contents
+      console.log('📦 FormData contents being sent:');
+      for (let [key, value] of formData.entries()) {
+        if (key === 'images') {
+          console.log(`  ${key}:`, value, '(File)');
+        } else {
+          console.log(`  ${key}:`, value);
+        }
+      }
+
+      console.log('🔄 Submitting to API...');
+      const response = await productAPI.createProduct(formData);
+      console.log('✅ Product creation response:', response);
+
+      if (response.data.success) {
+        setShowProductModal(false);
+        await fetchProducts();
+        alert('Product added successfully! Waiting for verification.');
+      } else {
+        alert(response.data.message || 'Failed to add product');
+      }
+    } catch (error) {
+      console.error('❌ FULL Error details:', error);
+      console.error('❌ Error response data:', error.response?.data);
+      
+      // More specific error handling
+     if (typeof error.response?.data === 'string' && error.response.data.includes('duplicate')) {
+  // handle string error
+} else if (typeof error.response?.data === 'object' && error.response.data.message?.includes('duplicate')) {
+  // handle object error message
+} else {
+  console.error('Error submitting product:', error.response?.data || error.message);
+}
+
     }
-  }
-};
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
@@ -356,16 +354,16 @@ const OverviewTab = ({ user, products }) => (
             <div key={product._id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
               <div>
                 <p className="font-medium text-gray-800">{product.name}</p>
-                <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit}</p>
+                <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit || 'kg'}</p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                product.verificationStatus === 'approved' 
+                product.status === 'APPROVED' 
                   ? 'bg-green-100 text-green-800' 
-                  : product.verificationStatus === 'pending'
+                  : product.status === 'PENDING'
                   ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-red-100 text-red-800'
               }`}>
-                {product.verificationStatus}
+                {product.status}
               </span>
             </div>
           ))}
@@ -385,7 +383,7 @@ const OverviewTab = ({ user, products }) => (
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Products:</span>
-            <span className="font-medium">{user.products?.join(', ')}</span>
+            <span className="font-medium">{user.products?.join(', ') || 'None specified'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Member Since:</span>
@@ -401,13 +399,22 @@ const ProductsTab = ({ products, onAddProduct, onRefresh }) => (
   <div>
     <div className="flex justify-between items-center mb-6">
       <h3 className="text-xl font-semibold text-gray-800">My Products</h3>
-      <button
-        onClick={onAddProduct}
-        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md flex items-center space-x-2 transition"
-      >
-        <span>+</span>
-        <span>Add Product</span>
-      </button>
+      <div className="flex space-x-2">
+        <button
+          onClick={onRefresh}
+          className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md flex items-center space-x-2 transition"
+        >
+          <span>🔄</span>
+          <span>Refresh</span>
+        </button>
+        <button
+          onClick={onAddProduct}
+          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md flex items-center space-x-2 transition"
+        >
+          <span>+</span>
+          <span>Add Product</span>
+        </button>
+      </div>
     </div>
     
     {products.length === 0 ? (
@@ -465,17 +472,17 @@ const ProductsTab = ({ products, onAddProduct, onRefresh }) => (
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-600 capitalize">{product.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{product.quantity} {product.unit}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-600">₹{product.price}/{product.unit}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{product.quantity} {product.unit || 'kg'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">₹{product.price}/{product.unit || 'kg'}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.verificationStatus === 'approved' 
+                    product.status === 'APPROVED' 
                       ? 'bg-green-100 text-green-800'
-                      : product.verificationStatus === 'pending'
+                      : product.status === 'PENDING'
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {product.verificationStatus}
+                    {product.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -494,12 +501,12 @@ const VerificationTab = ({ products }) => (
   <div>
     <h3 className="text-xl font-semibold text-gray-800 mb-6">Product Verification Status</h3>
     <div className="space-y-4">
-      {products.filter(p => p.verificationStatus === 'pending').map((product) => (
+      {products.filter(p => p.status === 'PENDING').map((product) => (
         <div key={product._id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-gray-800">{product.name}</h4>
-              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit}</p>
+              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit || 'kg'}</p>
               <p className="text-xs text-yellow-700 mt-1">Verification pending admin approval</p>
             </div>
             <div className="flex items-center space-x-2">
@@ -510,14 +517,14 @@ const VerificationTab = ({ products }) => (
         </div>
       ))}
       
-      {products.filter(p => p.verificationStatus === 'approved').map((product) => (
+      {products.filter(p => p.status === 'APPROVED').map((product) => (
         <div key={product._id} className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-gray-800">{product.name}</h4>
-              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit}</p>
+              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit || 'kg'}</p>
               <p className="text-xs text-green-700 mt-1">
-                Verified on {new Date(product.verifiedAt).toLocaleDateString()} • {product.verificationId}
+                Verified • {product.verificationId}
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -530,12 +537,12 @@ const VerificationTab = ({ products }) => (
         </div>
       ))}
 
-      {products.filter(p => p.verificationStatus === 'rejected').map((product) => (
+      {products.filter(p => p.status === 'REJECTED').map((product) => (
         <div key={product._id} className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-gray-800">{product.name}</h4>
-              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit}</p>
+              <p className="text-sm text-gray-600">{product.category} • {product.quantity} {product.unit || 'kg'}</p>
               <p className="text-xs text-red-700 mt-1">Verification rejected. Please contact support.</p>
             </div>
             <div className="flex items-center space-x-2">

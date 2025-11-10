@@ -214,23 +214,21 @@ const Home = () => {
           <div className="text-center mb-20">
             {/* Company Logo Added Here */}
             <div className="flex justify-center mb-8">
-              <div className="w-24 h-24 flex items-center justify-center">
-                <img 
-                  src="/images/logo/elitess-logo.png" 
-                  alt="Elitess Global" 
-                  className="w-full h-full object-contain rounded-full"
-                  onError={(e) => {
-                    // Fallback if image doesn't exist
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                {/* Fallback logo if image doesn't load */}
-                <div className="w-24 h-24 bg-gradient-to-br from-primary to-green-600 rounded-full hidden items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-3xl">E</span>
-                </div>
-              </div>
-            </div>
+  <div className="max-w-xs w-48 h-48 flex items-center justify-center"> {/* Max width constraint */}
+    <img 
+      src="/images/logo/elitess-logo.png" 
+      alt="Elitess Global" 
+      className="w-full h-full object-contain rounded-full"
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.nextSibling.style.display = 'flex';
+      }}
+    />
+    <div className="max-w-xs w-48 h-48 bg-gradient-to-br from-primary to-green-600 rounded-full hidden items-center justify-center shadow-lg">
+      <span className="text-white font-bold text-6xl">E</span>
+    </div>
+  </div>
+</div>
 
             <div className="inline-block mb-6">
               <div className="w-20 h-px bg-gradient-to-r from-transparent via-green-500 to-transparent mx-auto mb-4"></div>
