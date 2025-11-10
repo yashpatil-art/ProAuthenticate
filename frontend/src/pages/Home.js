@@ -214,7 +214,7 @@ const Home = () => {
           <div className="text-center mb-20">
             {/* Company Logo Added Here */}
             <div className="flex justify-center mb-8">
-  <div className="max-w-xs w-48 h-48 flex items-center justify-center"> {/* Max width constraint */}
+  <div className="max-w-xs w-52 h-52 flex items-center justify-center"> {/* Max width constraint */}
     <img 
       src="/images/logo/elitess-logo.png" 
       alt="Elitess Global" 
