@@ -104,10 +104,10 @@ const Navbar = () => {
             <div className="flex flex-col space-y-4 px-4">
               <Link to="/" className={`${isActiveLink('/')} py-2`} onClick={() => setIsMenuOpen(false)}>Home</Link>
               
-              {/* 🍌 Quality Rated Bananas Link Added for Mobile */}
+              {/* 🍌 Quality Rated Bananas Link Added for Mobile
               <Link to="/products" className={`${isActiveLink('/products')} py-2`} onClick={() => setIsMenuOpen(false)}>
                 🍌 Quality Rated Bananas
-              </Link>
+              </Link> */}
               
               <Link to="/about" className={`${isActiveLink('/about')} py-2`} onClick={() => setIsMenuOpen(false)}>About Us</Link>
               {/* Fixed Sustainability Link */}
