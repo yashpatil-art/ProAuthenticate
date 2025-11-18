@@ -234,7 +234,7 @@ const Home = () => {
               <div className="w-20 h-px bg-gradient-to-r from-transparent via-green-500 to-transparent mx-auto mb-4"></div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                 The <span className="relative">
-                  <span className="text-green-600">Elitess Global</span>
+                  <span className="text-green-600">Elites Global</span>
                   <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-200 transform -skew-x-12"></span>
                 </span> Advantage
               </h2>

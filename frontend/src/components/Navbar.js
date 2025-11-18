@@ -34,7 +34,7 @@ const Navbar = () => {
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Elitess Global</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Elites Global</h1>
               </div>
             </Link>
           </div>

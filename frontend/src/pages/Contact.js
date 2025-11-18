@@ -36,13 +36,13 @@ const Contact = () => {
     {
       icon: '📧',
       title: 'Email Us',
-      details: 'info@elitesglobal.com',
+      details: 'eliteglobal22498@gmail.com',
       description: 'Send us an email anytime'
     },
     {
       icon: '📞',
       title: 'Call Us',
-      details: '+919604127449',
+      details: '+91 9922569800',
       description: 'Mon to Fri, 9AM to 6PM'
     },
     {
@@ -57,7 +57,7 @@ const Contact = () => {
         </svg>
 ),
       title: 'WhatsApp',
-      details: '+919604127449',
+      details: '+91 9922569800',
       description: 'Quick responses via WhatsApp'
     }
   ];
